@@ -1,0 +1,174 @@
+/* assets/style.css */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background: #dedede;
+  padding: 18px 12px;
+}
+
+.sidebar-title {
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.side-link {
+  display: block;
+  padding: 12px 10px;
+  margin-bottom: 10px;
+  background: #efefef;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #111;
+  font-weight: 700;
+}
+
+.side-link.active {
+  background: #ffffff;
+  border: 1px solid #cfcfcf;
+}
+
+/* Main */
+.main {
+  padding: 18px;
+}
+
+.header {
+  text-align: center;
+  background: #dcdcdc;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+/* Filters row */
+.filters-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 110px;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.filter-box {
+  background: #e8e8e8;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.filter-label {
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.apply-btn {
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: #d5d5d5;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.apply-btn:hover {
+  background: #c8c8c8;
+}
+
+/* KPIs */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.kpi-card {
+  background: #d9d9d9;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.kpi-title {
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.kpi-value {
+  font-weight: 900;
+  font-size: 26px;
+}
+
+/* Charts */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.panel {
+  background: #d9d9d9;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.panel-title {
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+/* Fixtures */
+.fixtures-panel {
+  padding: 16px;
+}
+
+.fixtures-title {
+  text-align: center;
+  font-weight: 900;
+  font-size: 24px;
+  margin: 4px 0 12px 0;
+}
+
+.error-text {
+  color: crimson;
+  white-space: pre-wrap;
+  margin-top: 10px;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .filters-row {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
