@@ -142,6 +142,23 @@ layout = html.Div(
                 ),
 
                 html.Div(
+                    className="charts-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div("Results Breakdown (last 10 matches)", className="panel-title"),
+                                dcc.Graph(
+                                    id="team_results_chart",
+                                    figure=px.pie(title=""),
+                                    style={"height": f"{CHART_HEIGHT}px"},
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+
+                html.Div(
                     className="panel fixtures-panel",
                     children=[
                         html.Div("Upcoming fixtures", className="fixtures-title"),
@@ -195,6 +212,7 @@ def update_team_dropdown_options(league_id, season_year, current_team_id):
     Output("team_form_label", "children"),
     Output("team_form_chart", "figure"),
     Output("team_scorers_chart", "figure"),
+    Output("team_results_chart", "figure"),
     Output("team_fixtures_table", "children"),
     Output("team_error_box", "children"),
     Input("team_apply", "n_clicks"),
@@ -258,6 +276,18 @@ def update_team_page(n, league_id, season_year, team_id):
         fixtures_df = get_team_upcoming_fixtures(league_id, season_year, team_id, next_n=5)
         fixtures_table = make_fixtures_table(fixtures_df)
 
+        # Results breakdown (W/D/L) from the last N matches
+        results_fig = px.pie(
+            names=["W", "D", "L"],
+            values=[
+                int((form_df[form_df["result"] == "W"].shape[0])) if form_df is not None else 0,
+                int((form_df[form_df["result"] == "D"].shape[0])) if form_df is not None else 0,
+                int((form_df[form_df["result"] == "L"].shape[0])) if form_df is not None else 0,
+            ],
+            title="",
+        )
+        results_fig.update_layout(height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30))
+
         return (
             matches,
             goals,
@@ -266,6 +296,7 @@ def update_team_page(n, league_id, season_year, team_id):
             form_label,
             form_fig,
             scorers_fig,
+            results_fig,
             fixtures_table,
             "",
         )
