@@ -5,6 +5,7 @@ import plotly.express as px
 from services.constants import LEAGUES, SEASONS, TEAMS_PL
 from services.api_football import (
     get_team_top_scorers,
+    get_team_top_assists,
     get_team_form_points,
     get_team_upcoming_fixtures,
     get_team_snapshot,
@@ -41,134 +42,165 @@ def make_fixtures_table(df):
     )
 
 
-layout = html.Div(
-    className="shell",
-    children=[
-        html.Div(
-            className="sidebar",
-            children=[
-                html.Div("Team Page", className="sidebar-title"),
-                dcc.Link("Home", href="/", className="side-link"),
-                dcc.Link("League", href="/league", className="side-link"),
-                dcc.Link("Team", href="/team", className="side-link active"),
-                dcc.Link("Players", href="/player", className="side-link"),
-            ],
-        ),
-        html.Div(
-            className="main",
-            children=[
-                html.Div("Team Analytics Dashboard", className="header"),
-
-                html.Div(
-                    className="filters-row",
-                    children=[
-                        html.Div(
-                            className="filter-box",
-                            children=[
-                                html.Div("League dropdown", className="filter-label"),
-                                dcc.Dropdown(
-                                    id="team_league_dd",
-                                    options=LEAGUES,
-                                    value=39,
-                                    clearable=False,
-                                ),
-                            ],
-                        ),
-                        html.Div(
-                            className="filter-box",
-                            children=[
-                                html.Div("Season dropdown", className="filter-label"),
-                                dcc.Dropdown(
-                                    id="team_season_dd",
-                                    options=SEASONS,
-                                    value=SEASONS[0]["value"] if SEASONS else 2024,
-                                    clearable=False,
-                                ),
-                            ],
-                        ),
-                        html.Div(
-                            className="filter-box",
-                            children=[
-                                html.Div("Team dropdown", className="filter-label"),
-                                dcc.Dropdown(
-                                    id="team_team_dd",
-                                    options=TEAMS_PL,
-                                    value=TEAMS_PL[0]["value"] if TEAMS_PL else 40,
-                                    clearable=False,
-                                ),
-                            ],
-                        ),
-                        html.Button("Apply", id="team_apply", n_clicks=1, className="apply-btn"),
-                    ],
-                ),
-
-                html.Div(
-                    className="kpi-row",
-                    children=[
-                        kpi_card("Matches played", "team_kpi_matches"),
-                        kpi_card("Goals scored", "team_kpi_goals"),
-                        kpi_card("League position", "team_kpi_position"),
-                        kpi_card("Top scorer", "team_kpi_top_scorer"),
-                    ],
-                ),
-
-                html.Div(
-                    className="charts-row",
-                    children=[
-                        html.Div(
-                            className="panel",
-                            children=[
-                                html.Div("Team Form trend (last 10 matches)", className="panel-title"),
-                                html.Div(id="team_form_label", style={"fontWeight": "700", "marginBottom": "6px"}),
-                                dcc.Graph(
-                                    id="team_form_chart",
-                                    figure=px.line(title=""),
-                                    style={"height": f"{CHART_HEIGHT}px"},
-                                ),
-                            ],
-                        ),
-                        html.Div(
-                            className="panel",
-                            children=[
-                                html.Div("Team Top Scorers", className="panel-title"),
-                                dcc.Graph(
-                                    id="team_scorers_chart",
-                                    figure=px.bar(title=""),
-                                    style={"height": f"{CHART_HEIGHT}px"},
-                                ),
-                            ],
-                        ),
-                    ],
-                ),
-
-                html.Div(
-                    className="charts-row",
-                    children=[
-                        html.Div(
-                            className="panel",
-                            children=[
-                                html.Div("Results Breakdown (last 10 matches)", className="panel-title"),
-                                dcc.Graph(
-                                    id="team_results_chart",
-                                    figure=px.pie(title=""),
-                                    style={"height": f"{CHART_HEIGHT}px"},
-                                ),
-                            ],
-                        ),
-                    ],
-                ),
-
-                html.Div(
-                    className="panel fixtures-panel",
-                    children=[
-                        html.Div("Upcoming fixtures", className="fixtures-title"),
-                        html.Div(id="team_fixtures_table"),
-                        html.Div(id="team_error_box", className="error-text"),
-                    ],
-                ),
-            ],
-        ),
-    ],
+layout = (
+    html.Div(
+        className="shell",
+        children=[
+            html.Div(
+                className="sidebar",
+                children=[
+                    html.Div("Team Page", className="sidebar-title"),
+                    dcc.Link("Home", href="/", className="side-link"),
+                    dcc.Link("League", href="/league", className="side-link"),
+                    dcc.Link("Team", href="/team", className="side-link active"),
+                    dcc.Link("Players", href="/player", className="side-link"),
+                ],
+            ),
+            html.Div(
+                className="main",
+                children=[
+                    html.Div("Team Analytics Dashboard", className="header"),
+                    html.Div(
+                        className="filters-row",
+                        children=[
+                            html.Div(
+                                className="filter-box",
+                                children=[
+                                    html.Div(
+                                        "League dropdown", className="filter-label"
+                                    ),
+                                    dcc.Dropdown(
+                                        id="team_league_dd",
+                                        options=LEAGUES,
+                                        value=39,
+                                        clearable=False,
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="filter-box",
+                                children=[
+                                    html.Div(
+                                        "Season dropdown", className="filter-label"
+                                    ),
+                                    dcc.Dropdown(
+                                        id="team_season_dd",
+                                        options=SEASONS,
+                                        value=SEASONS[0]["value"] if SEASONS else 2024,
+                                        clearable=False,
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="filter-box",
+                                children=[
+                                    html.Div("Team dropdown", className="filter-label"),
+                                    dcc.Dropdown(
+                                        id="team_team_dd",
+                                        options=TEAMS_PL,
+                                        value=TEAMS_PL[0]["value"] if TEAMS_PL else 40,
+                                        clearable=False,
+                                    ),
+                                ],
+                            ),
+                            html.Button(
+                                "Apply",
+                                id="team_apply",
+                                n_clicks=1,
+                                className="apply-btn",
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="kpi-row",
+                        children=[
+                            kpi_card("Matches played", "team_kpi_matches"),
+                            kpi_card("Goals scored", "team_kpi_goals"),
+                            kpi_card("League position", "team_kpi_position"),
+                            kpi_card("Top scorer", "team_kpi_top_scorer"),
+                        ],
+                    ),
+                    html.Div(
+                        className="charts-row",
+                        children=[
+                            html.Div(
+                                className="panel",
+                                children=[
+                                    html.Div(
+                                        "Team Form trend (last 10 matches)",
+                                        className="panel-title",
+                                    ),
+                                    html.Div(
+                                        id="team_form_label",
+                                        style={
+                                            "fontWeight": "700",
+                                            "marginBottom": "6px",
+                                        },
+                                    ),
+                                    dcc.Graph(
+                                        id="team_form_chart",
+                                        figure=px.line(title=""),
+                                        style={"height": f"{CHART_HEIGHT}px"},
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="panel",
+                                children=[
+                                    html.Div(
+                                        "Team Top Scorers", className="panel-title"
+                                    ),
+                                    dcc.Graph(
+                                        id="team_scorers_chart",
+                                        figure=px.bar(title=""),
+                                        style={"height": f"{CHART_HEIGHT}px"},
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="charts-row",
+                        children=[
+                            html.Div(
+                                className="panel",
+                                children=[
+                                    html.Div(
+                                        "Results Breakdown (last 10 matches)",
+                                        className="panel-title",
+                                    ),
+                                    dcc.Graph(
+                                        id="team_results_chart",
+                                        figure=px.pie(title=""),
+                                        style={"height": f"{CHART_HEIGHT}px"},
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="panel",
+                        children=[
+                            html.Div("Team Top Assists", className="panel-title"),
+                            dcc.Graph(
+                                id="team_assists_chart",
+                                figure=px.bar(title=""),
+                                style={"height": f"{CHART_HEIGHT}px"},
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            html.Div(
+                className="panel fixtures-panel",
+                children=[
+                    html.Div("Upcoming fixtures", className="fixtures-title"),
+                    html.Div(id="team_fixtures_table"),
+                    html.Div(id="team_error_box", className="error-text"),
+                ],
+            ),
+        ],
+    ),
 )
 
 
@@ -213,6 +245,7 @@ def update_team_dropdown_options(league_id, season_year, current_team_id):
     Output("team_form_chart", "figure"),
     Output("team_scorers_chart", "figure"),
     Output("team_results_chart", "figure"),
+    Output("team_assists_chart", "figure"),
     Output("team_fixtures_table", "children"),
     Output("team_error_box", "children"),
     Input("team_apply", "n_clicks"),
@@ -227,7 +260,9 @@ def update_team_page(n, league_id, season_year, team_id):
         team_id = int(team_id)
 
         teams = get_league_teams(league_id, season_year)
-        team_name = next((t["label"] for t in teams if int(t["value"]) == team_id), str(team_id))
+        team_name = next(
+            (t["label"] for t in teams if int(t["value"]) == team_id), str(team_id)
+        )
 
         # Team KPIs
         snap = get_team_snapshot(league_id, season_year, team_id) or {}
@@ -249,16 +284,22 @@ def update_team_page(n, league_id, season_year, team_id):
             top_scorer = "—"
         else:
             scorers_fig = px.bar(scorers_df, x="player", y="goals", title="")
-            top_scorer = f"{scorers_df.iloc[0]['player']} ({scorers_df.iloc[0]['goals']})"
+            top_scorer = (
+                f"{scorers_df.iloc[0]['player']} ({scorers_df.iloc[0]['goals']})"
+            )
 
-        scorers_fig.update_layout(height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30))
+        scorers_fig.update_layout(
+            height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
+        )
 
         # Form
         form_df = get_team_form_points(league_id, season_year, team_id, last_n=10)
         form_label = f"Form for: {team_name}"
 
         if form_df is None or form_df.empty:
-            form_fig = px.line(title="No finished matches returned for this team/season yet.")
+            form_fig = px.line(
+                title="No finished matches returned for this team/season yet."
+            )
         else:
             form_fig = px.line(
                 form_df,
@@ -272,21 +313,52 @@ def update_team_page(n, league_id, season_year, team_id):
 
         form_fig.update_layout(height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30))
 
+        # Top assists
+        assists_df = get_team_top_assists(league_id, team_id, season_year)
+
+        if assists_df is None or assists_df.empty:
+            assists_fig = px.bar(title="No assists data returned for this team.")
+        else:
+            assists_fig = px.bar(
+                assists_df,
+                x="player",
+                y="assists",
+                title="",
+            )
+
+        assists_fig.update_layout(height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30))
+
         # Upcoming fixtures
-        fixtures_df = get_team_upcoming_fixtures(league_id, season_year, team_id, next_n=5)
+        fixtures_df = get_team_upcoming_fixtures(
+            league_id, season_year, team_id, next_n=5
+        )
         fixtures_table = make_fixtures_table(fixtures_df)
 
         # Results breakdown (W/D/L) from the last N matches
         results_fig = px.pie(
             names=["W", "D", "L"],
             values=[
-                int((form_df[form_df["result"] == "W"].shape[0])) if form_df is not None else 0,
-                int((form_df[form_df["result"] == "D"].shape[0])) if form_df is not None else 0,
-                int((form_df[form_df["result"] == "L"].shape[0])) if form_df is not None else 0,
+                (
+                    int((form_df[form_df["result"] == "W"].shape[0]))
+                    if form_df is not None
+                    else 0
+                ),
+                (
+                    int((form_df[form_df["result"] == "D"].shape[0]))
+                    if form_df is not None
+                    else 0
+                ),
+                (
+                    int((form_df[form_df["result"] == "L"].shape[0]))
+                    if form_df is not None
+                    else 0
+                ),
             ],
             title="",
         )
-        results_fig.update_layout(height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30))
+        results_fig.update_layout(
+            height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
+        )
 
         return (
             matches,
@@ -297,6 +369,7 @@ def update_team_page(n, league_id, season_year, team_id):
             form_fig,
             scorers_fig,
             results_fig,
+            assists_fig,
             fixtures_table,
             "",
         )
