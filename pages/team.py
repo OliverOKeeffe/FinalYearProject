@@ -176,17 +176,20 @@ layout = (
                                     ),
                                 ],
                             ),
-                        ],
-                    ),
-                    html.Div(
-                        className="panel",
-                        children=[
-                            html.Div("Team Top Assists", className="panel-title"),
-                            dcc.Graph(
-                                id="team_assists_chart",
-                                figure=px.bar(title=""),
-                                style={"height": f"{CHART_HEIGHT}px"},
+                            html.Div(
+                                className="panel",
+                                children=[
+                                    html.Div(
+                                        "Team Top Assists", className="panel-title"
+                                    ),
+                                    dcc.Graph(
+                                        id="team_assists_chart",
+                                        figure=px.bar(title=""),
+                                        style={"height": f"{CHART_HEIGHT}px"},
+                                    ),
+                                ],
                             ),
+
                         ],
                     ),
                 ],
