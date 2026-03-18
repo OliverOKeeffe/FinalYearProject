@@ -192,14 +192,14 @@ layout = (
 
                         ],
                     ),
-                ],
-            ),
-            html.Div(
-                className="panel fixtures-panel",
-                children=[
-                    html.Div("Upcoming fixtures", className="fixtures-title"),
-                    html.Div(id="team_fixtures_table"),
-                    html.Div(id="team_error_box", className="error-text"),
+                    html.Div(
+                        className="panel fixtures-panel",
+                        children=[
+                            html.Div("Upcoming fixtures", className="fixtures-title"),
+                            html.Div(id="team_fixtures_table"),
+                            html.Div(id="team_error_box", className="error-text"),
+                        ],
+                    ),
                 ],
             ),
         ],
