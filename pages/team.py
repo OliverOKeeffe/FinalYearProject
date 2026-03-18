@@ -193,6 +193,25 @@ layout = (
                         ],
                     ),
                     html.Div(
+                        className="full-width-row",
+                        children=[
+                            html.Div(
+                                className="panel",
+                                children=[
+                                    html.Div(
+                                        "Cumulative points (last 10 matches)",
+                                        className="panel-title",
+                                    ),
+                                    dcc.Graph(
+                                        id="team_cumulative_points_chart",
+                                        figure=px.line(title=""),
+                                        style={"height": f"{CHART_HEIGHT}px"},
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                    html.Div(
                         className="panel fixtures-panel",
                         children=[
                             html.Div("Upcoming fixtures", className="fixtures-title"),
@@ -246,6 +265,7 @@ def update_team_dropdown_options(league_id, season_year, current_team_id):
     Output("team_kpi_top_scorer", "children"),
     Output("team_form_label", "children"),
     Output("team_form_chart", "figure"),
+    Output("team_cumulative_points_chart", "figure"),
     Output("team_scorers_chart", "figure"),
     Output("team_results_chart", "figure"),
     Output("team_assists_chart", "figure"),
@@ -316,6 +336,28 @@ def update_team_page(n, league_id, season_year, team_id):
 
         form_fig.update_layout(height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30))
 
+        # Cumulative points
+        if form_df is None or form_df.empty:
+            cumulative_fig = px.line(
+                title="No finished matches returned for this team/season yet."
+            )
+        else:
+            cum_df = form_df.copy()
+            cum_df["cumulative_points"] = cum_df["points"].cumsum()
+            cumulative_fig = px.line(
+                cum_df,
+                x="match",
+                y="cumulative_points",
+                markers=True,
+                title="",
+                hover_data=["date", "result", "points", "cumulative_points"],
+            )
+            cumulative_fig.update_yaxes(tick0=0)
+
+        cumulative_fig.update_layout(
+            height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
+        )
+
         # Top assists
         assists_df = get_team_top_assists(league_id, team_id, season_year)
 
@@ -370,6 +412,7 @@ def update_team_page(n, league_id, season_year, team_id):
             top_scorer,
             form_label,
             form_fig,
+            cumulative_fig,
             scorers_fig,
             results_fig,
             assists_fig,
@@ -380,7 +423,26 @@ def update_team_page(n, league_id, season_year, team_id):
     except Exception as e:
         empty_form = px.line(title="API error")
         empty_form.update_layout(height=CHART_HEIGHT)
+        empty_cumulative = px.line(title="API error")
+        empty_cumulative.update_layout(height=CHART_HEIGHT)
         empty_scorers = px.bar(title="API error")
         empty_scorers.update_layout(height=CHART_HEIGHT)
+        empty_results = px.pie(title="API error")
+        empty_results.update_layout(height=CHART_HEIGHT)
+        empty_assists = px.bar(title="API error")
+        empty_assists.update_layout(height=CHART_HEIGHT)
 
-        return "—", "—", "—", "—", "", empty_form, empty_scorers, html.Div(), str(e)
+        return (
+            "—",
+            "—",
+            "—",
+            "—",
+            "",
+            empty_form,
+            empty_cumulative,
+            empty_scorers,
+            empty_results,
+            empty_assists,
+            html.Div(),
+            str(e),
+        )
