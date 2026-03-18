@@ -134,6 +134,56 @@ def get_league_top_scorers(league_id: int, season_year: int) -> pd.DataFrame:
 
     return df.sort_values("goals", ascending=False).head(10).reset_index(drop=True)
 
+# ---------------------------------------------------------
+# TEAM TOP ASSISTS
+# ---------------------------------------------------------
+
+def get_team_top_assists(league_id: int, team_id: int, season_year: int) -> pd.DataFrame:
+    all_rows = []
+
+    first = api_get(
+        "/players",
+        {"league": league_id, "season": season_year, "team": team_id, "page": 1},
+    )
+
+    total_pages = int((first.get("paging") or {}).get("total") or 1)
+    capped_pages = min(total_pages, int(PLAYERS_MAX_PAGES))
+
+    def parse_response(resp):
+        rows = []
+        for item in resp.get("response", []):
+            player = item.get("player", {}) or {}
+            stats = (item.get("statistics") or [{}])[0] or {}
+            goals = stats.get("goals") or {}
+            assists = goals.get("assists", 0)
+
+            rows.append(
+                {
+                    "player": player.get("name", "Unknown"),
+                    "assists": int(assists or 0),
+                }
+            )
+        return rows
+
+    all_rows.extend(parse_response(first))
+
+    for page in range(2, capped_pages + 1):
+        resp = api_get(
+            "/players",
+            {"league": league_id, "season": season_year, "team": team_id, "page": page},
+        )
+        all_rows.extend(parse_response(resp))
+
+    df = pd.DataFrame(all_rows)
+    if df.empty:
+        return df
+
+    df = df.groupby("player", as_index=False)["assists"].sum()
+    df = df[df["assists"] > 0]
+    if df.empty:
+        return df
+
+    return df.sort_values("assists", ascending=False).head(10).reset_index(drop=True)
 
 # ---------------------------------------------------------
 # TEAM FORM (LAST N MATCHES)
