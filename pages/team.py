@@ -1,6 +1,7 @@
 import dash
 from dash import dcc, html, Input, Output, State, dash_table
 import plotly.express as px
+import plotly.graph_objects as go
 
 from services.constants import LEAGUES, SEASONS, TEAMS_PL
 from services.api_football import (
@@ -189,7 +190,6 @@ layout = (
                                     ),
                                 ],
                             ),
-
                         ],
                     ),
                     html.Div(
@@ -206,6 +206,25 @@ layout = (
                                         id="team_cumulative_points_chart",
                                         figure=px.line(title=""),
                                         style={"height": f"{CHART_HEIGHT}px"},
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="full-width-row",
+                        children=[
+                            html.Div(
+                                className="panel",
+                                children=[
+                                    html.Div(
+                                        "Team vs League Average Profile",
+                                        className="panel-title",
+                                    ),
+                                    dcc.Graph(
+                                        id="team_radar_chart",
+                                        figure=go.Figure(),
+                                        style={"height": f"{CHART_HEIGHT + 80}px"},
                                     ),
                                 ],
                             ),
@@ -266,6 +285,7 @@ def update_team_dropdown_options(league_id, season_year, current_team_id):
     Output("team_form_label", "children"),
     Output("team_form_chart", "figure"),
     Output("team_cumulative_points_chart", "figure"),
+    Output("team_radar_chart", "figure"),
     Output("team_scorers_chart", "figure"),
     Output("team_results_chart", "figure"),
     Output("team_assists_chart", "figure"),
@@ -371,13 +391,119 @@ def update_team_page(n, league_id, season_year, team_id):
                 title="",
             )
 
-        assists_fig.update_layout(height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30))
+        assists_fig.update_layout(
+            height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
+        )
 
         # Upcoming fixtures
         fixtures_df = get_team_upcoming_fixtures(
             league_id, season_year, team_id, next_n=5
         )
         fixtures_table = make_fixtures_table(fixtures_df)
+
+        # Radar chart: selected team vs league average
+        if table_df is None or table_df.empty:
+            radar_fig = go.Figure()
+            radar_fig.update_layout(
+                title="No league table data available.",
+                height=CHART_HEIGHT + 80,
+                margin=dict(l=30, r=30, t=40, b=30),
+            )
+        else:
+            team_row = table_df[table_df["team_id"] == team_id]
+
+            if team_row.empty:
+                radar_fig = go.Figure()
+                radar_fig.update_layout(
+                    title="No team radar data available.",
+                    height=CHART_HEIGHT + 80,
+                    margin=dict(l=30, r=30, t=40, b=30),
+                )
+            else:
+                row = team_row.iloc[0]
+
+                # team values
+                team_played = row["played"] if row["played"] else 1
+                team_goals_per_match = row["goals_for"] / team_played
+                team_goals_against_per_match = row["goals_against"] / team_played
+                team_win_rate = row["win"] / team_played
+                team_draw_rate = row["draw"] / team_played
+                team_loss_rate = row["lose"] / team_played
+                team_points_per_match = row["points"] / team_played
+
+                # league average values
+                avg_played = table_df["played"].replace(0, 1)
+
+                league_goals_per_match = (table_df["goals_for"] / avg_played).mean()
+                league_goals_against_per_match = (table_df["goals_against"] / avg_played).mean()
+                league_win_rate = (table_df["win"] / avg_played).mean()
+                league_draw_rate = (table_df["draw"] / avg_played).mean()
+                league_loss_rate = (table_df["lose"] / avg_played).mean()
+                league_points_per_match = (table_df["points"] / avg_played).mean()
+
+                categories = [
+                    "Goals / Match",
+                    "Goals Against / Match",
+                    "Win Rate",
+                    "Draw Rate",
+                    "Loss Rate",
+                    "Points / Match",
+                ]
+
+                team_values = [
+                    team_goals_per_match,
+                    team_goals_against_per_match,
+                    team_win_rate,
+                    team_draw_rate,
+                    team_loss_rate,
+                    team_points_per_match,
+                ]
+
+                league_values = [
+                    league_goals_per_match,
+                    league_goals_against_per_match,
+                    league_win_rate,
+                    league_draw_rate,
+                    league_loss_rate,
+                    league_points_per_match,
+                ]
+
+                # close the shape
+                categories_closed = categories + [categories[0]]
+                team_values_closed = team_values + [team_values[0]]
+                league_values_closed = league_values + [league_values[0]]
+
+                radar_fig = go.Figure()
+
+                radar_fig.add_trace(
+                    go.Scatterpolar(
+                        r=team_values_closed,
+                        theta=categories_closed,
+                        fill="toself",
+                        name=team_name,
+                    )
+                )
+
+                radar_fig.add_trace(
+                    go.Scatterpolar(
+                        r=league_values_closed,
+                        theta=categories_closed,
+                        fill="toself",
+                        name="League Average",
+                    )
+                )
+
+                radar_fig.update_layout(
+                    polar=dict(
+                        radialaxis=dict(
+                            visible=True,
+                            showticklabels=True,
+                        )
+                    ),
+                    height=CHART_HEIGHT + 80,
+                    margin=dict(l=30, r=30, t=40, b=30),
+                    showlegend=True,
+                )
 
         # Results breakdown (W/D/L) from the last N matches
         results_fig = px.pie(
@@ -413,6 +539,7 @@ def update_team_page(n, league_id, season_year, team_id):
             form_label,
             form_fig,
             cumulative_fig,
+            radar_fig,
             scorers_fig,
             results_fig,
             assists_fig,
@@ -425,12 +552,15 @@ def update_team_page(n, league_id, season_year, team_id):
         empty_form.update_layout(height=CHART_HEIGHT)
         empty_cumulative = px.line(title="API error")
         empty_cumulative.update_layout(height=CHART_HEIGHT)
+        empty_radar = go.Figure()
+        empty_radar.update_layout(title="API error", height=CHART_HEIGHT + 80)
         empty_scorers = px.bar(title="API error")
         empty_scorers.update_layout(height=CHART_HEIGHT)
         empty_results = px.pie(title="API error")
         empty_results.update_layout(height=CHART_HEIGHT)
         empty_assists = px.bar(title="API error")
         empty_assists.update_layout(height=CHART_HEIGHT)
+        
 
         return (
             "—",
@@ -440,6 +570,7 @@ def update_team_page(n, league_id, season_year, team_id):
             "",
             empty_form,
             empty_cumulative,
+            empty_radar,
             empty_scorers,
             empty_results,
             empty_assists,
