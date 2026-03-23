@@ -8,74 +8,89 @@ dash.register_page(__name__, path="/player")
 
 
 layout = html.Div(
-    className="main",
+    className="shell",
     children=[
-        html.Div("Player Analytics Dashboard", className="header"),
-
         html.Div(
-            className="filters-row",
+            className="sidebar",
             children=[
+                html.Div("Player Page", className="sidebar-title"),
+                dcc.Link("Home", href="/", className="side-link"),
+                dcc.Link("League", href="/league", className="side-link"),
+                dcc.Link("Team", href="/team", className="side-link"),
+                dcc.Link("Players", href="/player", className="side-link active"),
+            ],
+        ),
+        html.Div(
+            className="main",
+            children=[
+                html.Div("Player Analytics Dashboard", className="header"),
+
                 html.Div(
-                    className="filter-box",
+                    className="filters-row",
                     children=[
-                        html.Div("League dropdown", className="filter-label"),
-                        dcc.Dropdown(
-                            id="player_league_dd",
-                            options=LEAGUES,
-                            value=39,
-                            clearable=False,
-                            searchable=False,
+                        html.Div(
+                            className="filter-box",
+                            children=[
+                                html.Div("League dropdown", className="filter-label"),
+                                dcc.Dropdown(
+                                    id="player_league_dd",
+                                    options=LEAGUES,
+                                    value=39,
+                                    clearable=False,
+                                    searchable=False,
+                                ),
+                            ],
                         ),
-                    ],
-                ),
-                html.Div(
-                    className="filter-box",
-                    children=[
-                        html.Div("Season dropdown", className="filter-label"),
-                        dcc.Dropdown(
-                            id="player_season_dd",
-                            options=SEASONS,
-                            value=SEASONS[0]["value"] if SEASONS else 2024,
-                            clearable=False,
-                            searchable=False,
+                        html.Div(
+                            className="filter-box",
+                            children=[
+                                html.Div("Season dropdown", className="filter-label"),
+                                dcc.Dropdown(
+                                    id="player_season_dd",
+                                    options=SEASONS,
+                                    value=SEASONS[0]["value"] if SEASONS else 2024,
+                                    clearable=False,
+                                    searchable=False,
+                                ),
+                            ],
                         ),
-                    ],
-                ),
-                html.Div(
-                    className="filter-box",
-                    children=[
-                        html.Div("Team dropdown", className="filter-label"),
-                        dcc.Dropdown(
-                            id="player_team_dd",
-                            options=TEAMS_PL,
-                            value=TEAMS_PL[0]["value"] if TEAMS_PL else 40,
-                            clearable=False,
-                            searchable=False,
+                        html.Div(
+                            className="filter-box",
+                            children=[
+                                html.Div("Team dropdown", className="filter-label"),
+                                dcc.Dropdown(
+                                    id="player_team_dd",
+                                    options=TEAMS_PL,
+                                    value=TEAMS_PL[0]["value"] if TEAMS_PL else 40,
+                                    clearable=False,
+                                    searchable=False,
+                                ),
+                            ],
                         ),
-                    ],
-                ),
-                html.Div(
-                    className="filter-box",
-                    children=[
-                        html.Div("Player dropdown", className="filter-label"),
-                        dcc.Dropdown(
-                            id="player_player_dd",
-                            options=[],
-                            value=None,
-                            placeholder="Select a player",
-                            clearable=False,
-                            searchable=False,
+                        html.Div(
+                            className="filter-box",
+                            children=[
+                                html.Div("Player dropdown", className="filter-label"),
+                                dcc.Dropdown(
+                                    id="player_player_dd",
+                                    options=[],
+                                    value=None,
+                                    placeholder="Select a player",
+                                    clearable=False,
+                                    searchable=False,
+                                ),
+                            ],
                         ),
-                    ],
-                ),
-                html.Div(
-                    className="apply-container",
-                    children=[
-                        html.Button(
-                            "Apply",
-                            id="player_apply",
-                            n_clicks=0,
-                            className="apply-btn",
+                        html.Div(
+                            className="apply-container",
+                            children=[
+                                html.Button(
+                                    "Apply",
+                                    id="player_apply",
+                                    n_clicks=0,
+                                    className="apply-btn",
+                                ),
+                            ],
                         ),
                     ],
                 ),
