@@ -57,10 +57,16 @@ body {
 /* Filters row */
 .filters-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 110px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 120px;
   gap: 14px;
   align-items: end;
   margin-bottom: 18px;
+}
+
+.apply-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
 .filter-box {

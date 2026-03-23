@@ -274,6 +274,45 @@ def get_league_teams(league_id: int, season_year: int) -> list[dict]:
 
 
 # ---------------------------------------------------------
+# TEAM PLAYERS
+# ---------------------------------------------------------
+
+def get_team_players(league_id: int, season_year: int, team_id: int) -> list[str]:
+    """Return a list of player names for a given league/team/season."""
+    all_players = []
+    try:
+        first = api_get(
+            "/players",
+            {"league": league_id, "season": season_year, "team": team_id, "page": 1},
+        )
+    except Exception:
+        return []
+
+    total_pages = int((first.get("paging") or {}).get("total") or 1)
+    capped_pages = min(total_pages, int(PLAYERS_MAX_PAGES))
+
+    def parse_response(resp):
+        players = []
+        for item in resp.get("response", []):
+            player = (item.get("player") or {}).get("name")
+            if player:
+                players.append(player)
+        return players
+
+    all_players.extend(parse_response(first))
+
+    for page in range(2, capped_pages + 1):
+        resp = api_get(
+            "/players",
+            {"league": league_id, "season": season_year, "team": team_id, "page": page},
+        )
+        all_players.extend(parse_response(resp))
+
+    all_players = sorted(set(all_players))
+    return all_players
+
+
+# ---------------------------------------------------------
 # TEAM UPCOMING FIXTURES
 # ---------------------------------------------------------
 
