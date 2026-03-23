@@ -1,6 +1,6 @@
 import dash
 from dash import dcc, html, Input, Output, State
-from services.api import get_league_teams, get_team_players
+from services.api_football import get_league_teams, get_team_players
 
 from services.constants import LEAGUES, SEASONS, TEAMS_PL
 
