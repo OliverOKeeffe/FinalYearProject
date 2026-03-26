@@ -1,4 +1,4 @@
-import dash
+import dash, plotly.express as px
 from dash import dcc, html, Input, Output, State
 from services.api_football import get_league_teams, get_team_players
 
@@ -24,7 +24,6 @@ layout = html.Div(
             className="main",
             children=[
                 html.Div("Player Analytics Dashboard", className="header"),
-
                 html.Div(
                     className="filters-row",
                     children=[
@@ -92,6 +91,11 @@ layout = html.Div(
                                 ),
                             ],
                         ),
+                        dcc.Graph(
+                            id="player_stats_chart",
+                            figure=px.bar(title=""),
+                            style={"height": "380px"},
+                        ),
                     ],
                 ),
             ],
@@ -124,7 +128,11 @@ def update_player_team_options(league_id, season_year, current_team_id):
         current_team_id = None
 
     values = [t["value"] for t in teams]
-    new_value = current_team_id if current_team_id in values else (teams[0]["value"] if teams else None)
+    new_value = (
+        current_team_id
+        if current_team_id in values
+        else (teams[0]["value"] if teams else None)
+    )
     return teams, new_value
 
 
