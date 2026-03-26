@@ -452,3 +452,24 @@ def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
         "matches_played": matches_played,
         "goals_scored": goals_scored,
     }
+
+# ---------------------------------------------------------
+# Player Stats (NEW FUNCTION)
+# ---------------------------------------------------------
+
+def get_player_stats(league_id, season_year, team_id, player_name):
+    resp = api_get(
+        "/players",
+        {"league": league_id, "season": season_year, "team": team_id, "page": 1},
+    )
+    for item in resp.get("response", []):
+        player = (item.get("player") or {}).get("name")
+        if player == player_name:
+            stats = (item.get("statistics") or [{}])[0] or {}
+            goals = (stats.get("goals") or {}).get("total", 0)
+            assists = (stats.get("goals") or {}).get("assists", 0)
+            shots = (stats.get("shots") or {}).get("total", 0)
+            passes = (stats.get("passes") or {}).get("total", 0)
+            tackles = (stats.get("tackles") or {}).get("total", 0)
+            return {"goals": goals, "assists": assists, "shots": shots, "passes": passes, "tackles": tackles}
+    return None
