@@ -313,6 +313,55 @@ def get_team_players(league_id: int, season_year: int, team_id: int) -> list[str
 
 
 # ---------------------------------------------------------
+# Player Stats (NEW FUNCTION)
+# ---------------------------------------------------------
+
+def get_player_stats(league_id: int, season_year: int, team_id: int, player_name: str) -> dict:
+    """Return key stats for a single player on a team in a league/season."""
+    page = 1
+    collected = {}
+
+    while True:
+        resp = api_get(
+            "/players",
+            {
+                "league": league_id,
+                "season": season_year,
+                "team": team_id,
+                "page": page,
+            },
+        )
+
+        for item in resp.get("response", []):
+            player = (item.get("player") or {}).get("name")
+            if player != player_name:
+                continue
+
+            stats = (item.get("statistics") or [{}])[0] or {}
+            goals = (stats.get("goals") or {}).get("total", 0)
+            assists = (stats.get("goals") or {}).get("assists", 0)
+            shots = (stats.get("shots") or {}).get("total", 0)
+            passes = (stats.get("passes") or {}).get("total", 0)
+            tackles = (stats.get("tackles") or {}).get("total", 0)
+
+            collected = {
+                "goals": int(goals or 0),
+                "assists": int(assists or 0),
+                "shots": int(shots or 0),
+                "passes": int(passes or 0),
+                "tackles": int(tackles or 0),
+            }
+            return collected
+
+        paging = resp.get("paging", {})
+        total_pages = int(paging.get("total", 1))
+        if page >= total_pages:
+            break
+        page += 1
+
+    return collected
+
+# ---------------------------------------------------------
 # TEAM UPCOMING FIXTURES
 # ---------------------------------------------------------
 
@@ -456,20 +505,3 @@ def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
 # ---------------------------------------------------------
 # Player Stats (NEW FUNCTION)
 # ---------------------------------------------------------
-
-def get_player_stats(league_id, season_year, team_id, player_name):
-    resp = api_get(
-        "/players",
-        {"league": league_id, "season": season_year, "team": team_id, "page": 1},
-    )
-    for item in resp.get("response", []):
-        player = (item.get("player") or {}).get("name")
-        if player == player_name:
-            stats = (item.get("statistics") or [{}])[0] or {}
-            goals = (stats.get("goals") or {}).get("total", 0)
-            assists = (stats.get("goals") or {}).get("assists", 0)
-            shots = (stats.get("shots") or {}).get("total", 0)
-            passes = (stats.get("passes") or {}).get("total", 0)
-            tackles = (stats.get("tackles") or {}).get("total", 0)
-            return {"goals": goals, "assists": assists, "shots": shots, "passes": passes, "tackles": tackles}
-    return None

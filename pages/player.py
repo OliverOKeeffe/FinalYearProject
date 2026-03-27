@@ -91,25 +91,10 @@ layout = html.Div(
                                 ),
                             ],
                         ),
-                        html.Div(
-                            className="charts-row",
-                            children=[
-                                html.Div(
-                                    className="panel",
-                                    children=[
-                                        html.Div(
-                                            "Player key stats", className="panel-title"
-                                        ),
-                                        dcc.Graph(
-                                            id="player_stats_chart",
-                                            figure=px.bar(
-                                                title="Select a player and Apply"
-                                            ),
-                                            style={"height": "360px"},
-                                        ),
-                                    ],
-                                ),
-                            ],
+                        dcc.Graph(
+                            id="player_stats_chart",
+                            figure=px.bar(title=""),
+                            style={"height": "380px"},
                         ),
                     ],
                 ),
