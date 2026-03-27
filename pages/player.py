@@ -1,6 +1,8 @@
-import dash, plotly.express as px
+import dash 
+import plotly.express as px
+import pandas as pd
 from dash import dcc, html, Input, Output, State
-from services.api_football import get_league_teams, get_team_players
+from services.api_football import get_league_teams, get_team_players, get_player_stats
 
 from services.constants import LEAGUES, SEASONS, TEAMS_PL
 
@@ -155,3 +157,42 @@ def update_player_player_options(league_id, season_year, team_id):
     options = [{"label": p, "value": p} for p in player_names]
     value = options[0]["value"] if options else None
     return options, value
+
+@dash.callback(
+    Output("player_stats_chart", "figure"),
+    Input("player_apply", "n_clicks"),
+    State("player_league_dd", "value"),
+    State("player_season_dd", "value"),
+    State("player_team_dd", "value"),
+    State("player_player_dd", "value"),
+)
+def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_name):
+    if not player_name:
+        return px.bar(title="Select a player and click Apply")
+
+    try:
+        league_id = int(league_id)
+        season_year = int(season_year)
+        team_id = int(team_id)
+    except Exception:
+        return px.bar(title="Invalid league/season/team selection")
+
+    stats = get_player_stats(league_id, season_year, team_id, player_name)
+    if not stats:
+        return px.bar(title=f"No stats found for {player_name}")
+
+    df = pd.DataFrame(
+        [{"stat": k.capitalize(), "value": v} for k, v in stats.items()]
+    )
+
+    fig = px.bar(
+        df,
+        x="stat",
+        y="value",
+        title=f"{player_name} Key Stats ({season_year})",
+        text="value",
+    )
+    fig.update_traces(marker_color="steelblue", textposition="outside")
+    fig.update_layout(yaxis_title="Value", xaxis_title="")
+
+    return fig
