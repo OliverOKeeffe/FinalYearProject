@@ -107,7 +107,7 @@ layout = html.Div(
                                 dcc.Graph(
                                     id="player_stats_chart",
                                     figure=px.bar(title=""),
-                                    style={"height": "380px"},
+                                    style={"height": "520px"},
                                 ),
                             ],
                         ),
