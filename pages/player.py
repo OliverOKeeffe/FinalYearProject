@@ -93,10 +93,23 @@ layout = html.Div(
                                 ),
                             ],
                         ),
-                        dcc.Graph(
-                            id="player_stats_chart",
-                            figure=px.bar(title=""),
-                            style={"height": "380px"},
+                    ],
+                ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div(
+                                    "Player key stats", className="panel-title"
+                                ),
+                                dcc.Graph(
+                                    id="player_stats_chart",
+                                    figure=px.bar(title=""),
+                                    style={"height": "380px"},
+                                ),
+                            ],
                         ),
                     ],
                 ),
