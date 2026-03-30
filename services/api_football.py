@@ -505,5 +505,16 @@ def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
     }
 
 # ---------------------------------------------------------
-# Player Stats (NEW FUNCTION)
+#  LEAGUE PLAYER AVERAGES (NEW FUNCTION) testing data
 # ---------------------------------------------------------
+
+def get_league_player_averages(league_id, season_year):
+    # TEMPORARY FAKE DATA (so your app runs)
+    return {
+        "goals": 5,
+        "assists": 3,
+        "shots": 20,
+        "passes": 400,
+        "tackles": 15,
+        "saves": 2,
+    }

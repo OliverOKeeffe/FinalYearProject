@@ -3,7 +3,7 @@ import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State
-from services.api_football import get_league_teams, get_team_players, get_player_stats
+from services.api_football import get_league_teams, get_team_players, get_player_stats, get_league_player_averages
 
 from services.constants import LEAGUES, SEASONS, TEAMS_PL
 
@@ -212,6 +212,8 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     stats = get_player_stats(league_id, season_year, team_id, player_name)
     if not stats:
         return px.bar(title=f"No stats found for {player_name}"), go.Figure()
+    
+    league_avgs = get_league_player_averages(league_id, season_year)
 
     df = pd.DataFrame([{"stat": k.capitalize(), "value": v} for k, v in stats.items()])
 
@@ -225,12 +227,21 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     fig.update_traces(marker_color="steelblue", textposition="outside")
     fig.update_layout(yaxis_title="Value", xaxis_title="")
 
+    #player stats
     goals = stats.get("goals", 0)
     assists = stats.get("assists", 0)
     shots = stats.get("shots", 0)
     passes = stats.get("passes", 0)
     tackles = stats.get("tackles", 0)
     saves = stats.get("saves", 0)
+
+    #league averages
+    avg_goals = league_avgs.get("goals", 0)
+    avg_assists = league_avgs.get("assists", 0)
+    avg_shots = league_avgs.get("shots", 0)
+    avg_passes = league_avgs.get("passes", 0)   
+    avg_tackles = league_avgs.get("tackles", 0)
+    avg_saves = league_avgs.get("saves", 0)
 
     categories = [
         "Goals",
@@ -240,7 +251,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         "Tackles",
     ]
 
-    values = [
+    player_values = [
         goals * 5,
         assists * 5,
         shots,
@@ -248,21 +259,41 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         tackles * 2,
     ]
 
-    if saves > 0:
+    league_values = [
+        avg_goals * 5,
+        avg_assists * 5,
+        avg_shots,
+        avg_passes / 10,
+        avg_tackles * 2,
+    ]
+
+    if saves > 0 or avg_saves > 0:
         categories.append("Saves")
-        values.append(saves * 2)
+        player_values.append(saves * 2)
+        league_values.append(avg_saves * 2)
+        
 
     categories_closed = categories + [categories[0]]
-    values_closed = values + [values[0]]
+    player_values_closed = player_values + [player_values[0]]
+    league_values_closed = league_values + [league_values[0]]
 
     radar_fig = go.Figure()
 
     radar_fig.add_trace(
         go.Scatterpolar(
-            r=values_closed,
+            r=player_values_closed,
             theta=categories_closed,
             fill="toself",
             name=player_name,
+        )
+    )
+
+    radar_fig.add_trace(
+        go.Scatterpolar(
+            r=league_values_closed,
+            theta=categories_closed,
+            fill="toself",
+            name="League Average",
         )
     )
 
@@ -273,7 +304,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
                 showticklabels=True,
             )
         ),
-        showlegend=False,
+        showlegend=True,
     )
 
     return fig, radar_fig
