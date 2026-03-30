@@ -509,12 +509,52 @@ def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
 # ---------------------------------------------------------
 
 def get_league_player_averages(league_id, season_year):
-    # TEMPORARY FAKE DATA (so your app runs)
-    return {
-        "goals": 5,
-        "assists": 3,
-        "shots": 20,
-        "passes": 400,
-        "tackles": 15,
-        "saves": 2,
-    }
+    try:
+        teams = get_league_teams(league_id, season_year)
+        if not teams:
+            return {}
+
+        totals = {
+            "goals": 0,
+            "assists": 0,
+            "shots": 0,
+            "passes": 0,
+            "tackles": 0,
+            "saves": 0,
+        }
+
+        player_count = 0
+
+        for team in teams:
+            team_id = team["value"]
+
+            players = get_team_players(league_id, season_year, team_id)
+            if not players:
+                continue
+
+            for player_name in players:
+                stats = get_player_stats(league_id, season_year, team_id, player_name)
+                if not stats:
+                    continue
+
+                totals["goals"] += stats.get("goals", 0)
+                totals["assists"] += stats.get("assists", 0)
+                totals["shots"] += stats.get("shots", 0)
+                totals["passes"] += stats.get("passes", 0)
+                totals["tackles"] += stats.get("tackles", 0)
+                totals["saves"] += stats.get("saves", 0)
+
+                player_count += 1
+
+        if player_count == 0:
+            return {}
+
+        averages = {
+            key: totals[key] / player_count for key in totals
+        }
+
+        return averages
+
+    except Exception as e:
+        print("Error calculating league averages:", e)
+        return {}
