@@ -1,6 +1,7 @@
-import dash 
+import dash
 import plotly.express as px
 import pandas as pd
+import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State
 from services.api_football import get_league_teams, get_team_players, get_player_stats
 
@@ -101,13 +102,29 @@ layout = html.Div(
                         html.Div(
                             className="panel",
                             children=[
-                                html.Div(
-                                    "Player key stats", className="panel-title"
-                                ),
+                                html.Div("Player key stats", className="panel-title"),
                                 dcc.Graph(
                                     id="player_stats_chart",
                                     figure=px.bar(title=""),
                                     style={"height": "520px"},
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div(
+                                    "Player Radar Profile", className="panel-title"
+                                ),
+                                dcc.Graph(
+                                    id="player_radar_chart",
+                                    figure=go.Figure(),
+                                    style={"height": "420px"},
                                 ),
                             ],
                         ),
@@ -171,8 +188,10 @@ def update_player_player_options(league_id, season_year, team_id):
     value = options[0]["value"] if options else None
     return options, value
 
+
 @dash.callback(
     Output("player_stats_chart", "figure"),
+    Output("player_radar_chart", "figure"),
     Input("player_apply", "n_clicks"),
     State("player_league_dd", "value"),
     State("player_season_dd", "value"),
@@ -181,22 +200,20 @@ def update_player_player_options(league_id, season_year, team_id):
 )
 def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_name):
     if not player_name:
-        return px.bar(title="Select a player and click Apply")
+        return px.bar(title="Select a player and click Apply"), go.Figure()
 
     try:
         league_id = int(league_id)
         season_year = int(season_year)
         team_id = int(team_id)
     except Exception:
-        return px.bar(title="Invalid league/season/team selection")
+        return px.bar(title="Invalid league/season/team selection"), go.Figure()
 
     stats = get_player_stats(league_id, season_year, team_id, player_name)
     if not stats:
-        return px.bar(title=f"No stats found for {player_name}")
+        return px.bar(title=f"No stats found for {player_name}"), go.Figure()
 
-    df = pd.DataFrame(
-        [{"stat": k.capitalize(), "value": v} for k, v in stats.items()]
-    )
+    df = pd.DataFrame([{"stat": k.capitalize(), "value": v} for k, v in stats.items()])
 
     fig = px.bar(
         df,
@@ -208,4 +225,50 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     fig.update_traces(marker_color="steelblue", textposition="outside")
     fig.update_layout(yaxis_title="Value", xaxis_title="")
 
-    return fig
+    goals = stats.get("goals", 0)
+    assists = stats.get("assists", 0)
+    shots = stats.get("shots", 0)
+    passes = stats.get("passes", 0)
+    tackles = stats.get("tackles", 0)
+
+    categories = [
+        "Goals",
+        "Assists",
+        "Shots",
+        "Passes",
+        "Tackles",
+    ]
+
+    values = [
+        goals * 5,
+        assists * 5,
+        shots,
+        passes / 10,
+        tackles * 2,
+    ]
+
+    categories_closed = categories + [categories[0]]
+    values_closed = values + [values[0]]
+
+    radar_fig = go.Figure()
+
+    radar_fig.add_trace(
+        go.Scatterpolar(
+            r=values_closed,
+            theta=categories_closed,
+            fill="toself",
+            name=player_name,
+        )
+    )
+
+    radar_fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                showticklabels=True,
+            )
+        ),
+        showlegend=False,
+    )
+
+    return fig, radar_fig
