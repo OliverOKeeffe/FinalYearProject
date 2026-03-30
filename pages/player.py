@@ -238,7 +238,6 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         "Shots",
         "Passes",
         "Tackles",
-        "Saves",
     ]
 
     values = [
@@ -247,8 +246,11 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         shots,
         passes / 10,
         tackles * 2,
-        saves * 2,
     ]
+
+    if saves > 0:
+        categories.append("Saves")
+        values.append(saves * 2)
 
     categories_closed = categories + [categories[0]]
     values_closed = values + [values[0]]
