@@ -230,6 +230,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     shots = stats.get("shots", 0)
     passes = stats.get("passes", 0)
     tackles = stats.get("tackles", 0)
+    saves = stats.get("saves", 0)
 
     categories = [
         "Goals",
@@ -237,6 +238,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         "Shots",
         "Passes",
         "Tackles",
+        "Saves",
     ]
 
     values = [
@@ -245,6 +247,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         shots,
         passes / 10,
         tackles * 2,
+        saves * 2,
     ]
 
     categories_closed = categories + [categories[0]]
