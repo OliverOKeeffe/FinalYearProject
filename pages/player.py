@@ -3,7 +3,12 @@ import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State
-from services.api_football import get_league_teams, get_team_players, get_player_stats, get_league_player_averages
+from services.api_football import (
+    get_league_teams,
+    get_team_players,
+    get_player_stats,
+    get_league_player_averages,
+)
 
 from services.constants import LEAGUES, SEASONS, TEAMS_PL
 
@@ -130,6 +135,22 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div("Passing Analysis", className="panel-title"),
+                                dcc.Graph(
+                                    id="player_passing_chart",
+                                    figure=px.bar(title=""),
+                                    style={"height": "550px"},
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
             ],
         ),
     ],
@@ -192,6 +213,7 @@ def update_player_player_options(league_id, season_year, team_id):
 @dash.callback(
     Output("player_stats_chart", "figure"),
     Output("player_radar_chart", "figure"),
+    Output("player_passing_chart", "figure"),
     Input("player_apply", "n_clicks"),
     State("player_league_dd", "value"),
     State("player_season_dd", "value"),
@@ -200,19 +222,19 @@ def update_player_player_options(league_id, season_year, team_id):
 )
 def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_name):
     if not player_name:
-        return px.bar(title="Select a player and click Apply"), go.Figure()
+        return px.bar(title="Select a player and click Apply"), go.Figure(), go.Figure()
 
     try:
         league_id = int(league_id)
         season_year = int(season_year)
         team_id = int(team_id)
     except Exception:
-        return px.bar(title="Invalid league/season/team selection"), go.Figure()
+        return px.bar(title="Invalid league/season/team selection"), go.Figure(), go.Figure()
 
     stats = get_player_stats(league_id, season_year, team_id, player_name)
     if not stats:
-        return px.bar(title=f"No stats found for {player_name}"), go.Figure()
-    
+        return px.bar(title=f"No stats found for {player_name}"), go.Figure(), go.Figure()
+
     league_avgs = get_league_player_averages(league_id, season_year)
 
     df = pd.DataFrame([{"stat": k.capitalize(), "value": v} for k, v in stats.items()])
@@ -227,19 +249,21 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     fig.update_traces(marker_color="steelblue", textposition="outside")
     fig.update_layout(yaxis_title="Value", xaxis_title="")
 
-    #player stats
+    # player stats
     goals = stats.get("goals", 0)
     assists = stats.get("assists", 0)
     shots = stats.get("shots", 0)
     passes = stats.get("passes", 0)
+    key_passes = stats.get("key_passes", 0)
+    pass_accuracy = stats.get("pass_accuracy", 0)
     tackles = stats.get("tackles", 0)
     saves = stats.get("saves", 0)
 
-    #league averages
+    # league averages
     avg_goals = league_avgs.get("goals", 0)
     avg_assists = league_avgs.get("assists", 0)
     avg_shots = league_avgs.get("shots", 0)
-    avg_passes = league_avgs.get("passes", 0)   
+    avg_passes = league_avgs.get("passes", 0)
     avg_tackles = league_avgs.get("tackles", 0)
     avg_saves = league_avgs.get("saves", 0)
 
@@ -271,7 +295,6 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         categories.append("Saves")
         player_values.append(saves * 2)
         league_values.append(avg_saves * 2)
-        
 
     categories_closed = categories + [categories[0]]
     player_values_closed = player_values + [player_values[0]]
@@ -307,4 +330,22 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         showlegend=True,
     )
 
-    return fig, radar_fig
+    
+    # PASSING CHART
+    passing_df = pd.DataFrame({
+        "stat": ["Passes", "Key Passes", "Pass Accuracy"],
+        "value": [passes, key_passes, pass_accuracy]
+    })
+
+    passing_fig = px.bar(
+        passing_df,
+        x="stat",
+        y="value",
+        title=f"{player_name} Passing Stats",
+        text="value"
+    )
+
+    passing_fig.update_traces(marker_color="orange", textposition="outside")
+    passing_fig.update_layout(yaxis_title="Value", xaxis_title="")
+
+    return fig, radar_fig, passing_fig

@@ -342,6 +342,8 @@ def get_player_stats(league_id: int, season_year: int, team_id: int, player_name
             assists = (stats.get("goals") or {}).get("assists", 0)
             shots = (stats.get("shots") or {}).get("total", 0)
             passes = (stats.get("passes") or {}).get("total", 0)
+            key_passes = (stats.get("passes") or {}).get("key", 0)
+            pass_accuracy = (stats.get("passes") or {}).get("accuracy", 0)
             tackles = (stats.get("tackles") or {}).get("total", 0)
             saves = (stats.get("goals") or {}).get("saves", 0)
 
@@ -350,6 +352,8 @@ def get_player_stats(league_id: int, season_year: int, team_id: int, player_name
                 "assists": int(assists or 0),
                 "shots": int(shots or 0),
                 "passes": int(passes or 0),
+                "key_passes": int(key_passes or 0),
+                "pass_accuracy": int(pass_accuracy or 0),
                 "tackles": int(tackles or 0),
                 "saves": int(saves or 0),
             }
@@ -360,8 +364,6 @@ def get_player_stats(league_id: int, season_year: int, team_id: int, player_name
         if page >= total_pages:
             break
         page += 1
-
-        print(stats)
 
     return collected
 
