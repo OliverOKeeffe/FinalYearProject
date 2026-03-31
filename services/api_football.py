@@ -361,6 +361,8 @@ def get_player_stats(league_id: int, season_year: int, team_id: int, player_name
             break
         page += 1
 
+        print(stats)
+
     return collected
 
 # ---------------------------------------------------------
@@ -510,9 +512,12 @@ def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
 
 def get_league_player_averages(league_id, season_year):
     try:
-        teams = get_league_teams(league_id, season_year)
-        if not teams:
-            return {}
+        data = api_get(
+            "/players",
+            {"league": league_id, "season": season_year, "page": 1},
+        )
+
+        total_pages = int((data.get("paging") or {}).get("total") or 1)
 
         totals = {
             "goals": 0,
@@ -525,36 +530,44 @@ def get_league_player_averages(league_id, season_year):
 
         player_count = 0
 
-        for team in teams:
-            team_id = team["value"]
+        def process(resp):
+            nonlocal player_count
 
-            players = get_team_players(league_id, season_year, team_id)
-            if not players:
-                continue
+            for item in resp.get("response", []):
+                stats = (item.get("statistics") or [{}])[0] or {}
 
-            for player_name in players:
-                stats = get_player_stats(league_id, season_year, team_id, player_name)
-                if not stats:
-                    continue
+                goals = (stats.get("goals") or {}).get("total", 0)
+                assists = (stats.get("goals") or {}).get("assists", 0)
+                shots = (stats.get("shots") or {}).get("total", 0)
+                passes = (stats.get("passes") or {}).get("total", 0)
+                tackles = (stats.get("tackles") or {}).get("total", 0)
+                saves = (stats.get("goals") or {}).get("saves", 0)
 
-                totals["goals"] += stats.get("goals", 0)
-                totals["assists"] += stats.get("assists", 0)
-                totals["shots"] += stats.get("shots", 0)
-                totals["passes"] += stats.get("passes", 0)
-                totals["tackles"] += stats.get("tackles", 0)
-                totals["saves"] += stats.get("saves", 0)
+                totals["goals"] += goals or 0
+                totals["assists"] += assists or 0
+                totals["shots"] += shots or 0
+                totals["passes"] += passes or 0
+                totals["tackles"] += tackles or 0
+                totals["saves"] += saves or 0
 
                 player_count += 1
+
+        # first page
+        process(data)
+
+        # remaining pages (limit to avoid API overload)
+        for page in range(2, min(total_pages, 5) + 1):
+            resp = api_get(
+                "/players",
+                {"league": league_id, "season": season_year, "page": page},
+            )
+            process(resp)
 
         if player_count == 0:
             return {}
 
-        averages = {
-            key: totals[key] / player_count for key in totals
-        }
-
-        return averages
+        return {k: v / player_count for k, v in totals.items()}
 
     except Exception as e:
-        print("Error calculating league averages:", e)
+        print("League average error:", e)
         return {}
