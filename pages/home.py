@@ -94,6 +94,7 @@ layout = html.Div(
                 dcc.Link("League", href="/league", className="side-link"),
                 dcc.Link("Team", href="/team", className="side-link"),
                 dcc.Link("Players", href="/player", className="side-link"),
+                dcc.Link("Comarison", href="/comparison", className="side-link"),
             ],
         ),
         html.Div(
