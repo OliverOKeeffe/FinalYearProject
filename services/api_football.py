@@ -61,7 +61,10 @@ def api_get(path: str, params: dict) -> dict:
 # TEAM TOP SCORERS
 # ---------------------------------------------------------
 
-def get_team_top_scorers(league_id: int, team_id: int, season_year: int) -> pd.DataFrame:
+
+def get_team_top_scorers(
+    league_id: int, team_id: int, season_year: int
+) -> pd.DataFrame:
     all_rows = []
 
     first = api_get(
@@ -112,6 +115,7 @@ def get_team_top_scorers(league_id: int, team_id: int, season_year: int) -> pd.D
 # LEAGUE TOP SCORERS (CORRECT ENDPOINT)
 # ---------------------------------------------------------
 
+
 def get_league_top_scorers(league_id: int, season_year: int) -> pd.DataFrame:
     data = api_get("/players/topscorers", {"league": league_id, "season": season_year})
 
@@ -134,11 +138,15 @@ def get_league_top_scorers(league_id: int, season_year: int) -> pd.DataFrame:
 
     return df.sort_values("goals", ascending=False).head(10).reset_index(drop=True)
 
+
 # ---------------------------------------------------------
 # TEAM TOP ASSISTS
 # ---------------------------------------------------------
 
-def get_team_top_assists(league_id: int, team_id: int, season_year: int) -> pd.DataFrame:
+
+def get_team_top_assists(
+    league_id: int, team_id: int, season_year: int
+) -> pd.DataFrame:
     all_rows = []
 
     first = api_get(
@@ -185,11 +193,15 @@ def get_team_top_assists(league_id: int, team_id: int, season_year: int) -> pd.D
 
     return df.sort_values("assists", ascending=False).head(10).reset_index(drop=True)
 
+
 # ---------------------------------------------------------
 # TEAM FORM (LAST N MATCHES)
 # ---------------------------------------------------------
 
-def get_team_form_points(league_id: int, season_year: int, team_id: int, last_n: int = 10) -> pd.DataFrame:
+
+def get_team_form_points(
+    league_id: int, season_year: int, team_id: int, last_n: int = 10
+) -> pd.DataFrame:
     data = api_get(
         "/fixtures",
         {"league": league_id, "season": season_year, "team": team_id, "last": last_n},
@@ -262,7 +274,7 @@ def get_league_teams(league_id: int, season_year: int) -> list[dict]:
 
     teams = []
     for item in data.get("response", []):
-        team = (item.get("team") or {})
+        team = item.get("team") or {}
         team_id = team.get("id")
         team_name = team.get("name")
         if team_id and team_name:
@@ -276,6 +288,7 @@ def get_league_teams(league_id: int, season_year: int) -> list[dict]:
 # ---------------------------------------------------------
 # TEAM PLAYERS
 # ---------------------------------------------------------
+
 
 def get_team_players(league_id: int, season_year: int, team_id: int) -> list[str]:
     """Return a list of player names for a given league/team/season."""
@@ -316,7 +329,10 @@ def get_team_players(league_id: int, season_year: int, team_id: int) -> list[str
 # Player Stats (NEW FUNCTION)
 # ---------------------------------------------------------
 
-def get_player_stats(league_id: int, season_year: int, team_id: int, player_name: str) -> dict:
+
+def get_player_stats(
+    league_id: int, season_year: int, team_id: int, player_name: str
+) -> dict:
     """Return key stats for a single player on a team in a league/season."""
     page = 1
     collected = {}
@@ -367,11 +383,15 @@ def get_player_stats(league_id: int, season_year: int, team_id: int, player_name
 
     return collected
 
+
 # ---------------------------------------------------------
 # TEAM UPCOMING FIXTURES
 # ---------------------------------------------------------
 
-def get_team_upcoming_fixtures(league_id: int, season_year: int, team_id: int, next_n: int = 5) -> pd.DataFrame:
+
+def get_team_upcoming_fixtures(
+    league_id: int, season_year: int, team_id: int, next_n: int = 5
+) -> pd.DataFrame:
     # "next" already returns the next scheduled fixtures, so no need to filter status
     data = api_get(
         "/fixtures",
@@ -409,6 +429,7 @@ def get_team_upcoming_fixtures(league_id: int, season_year: int, team_id: int, n
 # LEAGUE LEADER (FIXED PARSING)
 # ---------------------------------------------------------
 
+
 def get_league_leader(league_id: int, season_year: int) -> str:
     data = api_get("/standings", {"league": league_id, "season": season_year})
 
@@ -422,7 +443,7 @@ def get_league_leader(league_id: int, season_year: int) -> str:
         return "—"
 
     first_row = standings_lists[0][0]
-    team = (first_row.get("team") or {})
+    team = first_row.get("team") or {}
     team_name = team.get("name") or "—"
     points = first_row.get("points")
 
@@ -448,9 +469,9 @@ def get_league_table(league_id: int, season_year: int) -> pd.DataFrame:
 
     rows = []
     for row in standings_lists[0]:
-        team = (row.get("team") or {})
-        all_stats = (row.get("all") or {})
-        goals = (all_stats.get("goals") or {})
+        team = row.get("team") or {}
+        all_stats = row.get("all") or {}
+        goals = all_stats.get("goals") or {}
 
         rows.append(
             {
@@ -479,6 +500,7 @@ def get_league_table(league_id: int, season_year: int) -> pd.DataFrame:
 # TEAM SNAPSHOT (FIXED GOALS TOTALS)
 # ---------------------------------------------------------
 
+
 def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
     data = api_get(
         "/teams/statistics",
@@ -496,7 +518,7 @@ def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
     matches_played = (fixtures.get("played") or {}).get("total", 0)
 
     # goals["for"]["total"] is often a dict: {"home": X, "away": Y, "total": Z}
-    goals_for_total = ((goals.get("for") or {}).get("total", 0))
+    goals_for_total = (goals.get("for") or {}).get("total", 0)
 
     if isinstance(goals_for_total, dict):
         goals_scored = goals_for_total.get("total", 0)
@@ -508,9 +530,11 @@ def get_team_snapshot(league_id: int, season_year: int, team_id: int) -> dict:
         "goals_scored": goals_scored,
     }
 
+
 # ---------------------------------------------------------
 #  LEAGUE PLAYER AVERAGES (NEW FUNCTION) testing data
 # ---------------------------------------------------------
+
 
 def get_league_player_averages(league_id, season_year):
     try:
@@ -573,3 +597,54 @@ def get_league_player_averages(league_id, season_year):
     except Exception as e:
         print("League average error:", e)
         return {}
+
+# ---------------------------------------------------------
+#  Get player stats for scatter plot (NEW FUNCTION)
+# ---------------------------------------------------------
+def get_league_player_stats(league_id: int, season_year: int) -> pd.DataFrame:
+    rows = []
+
+    try:
+        data = api_get(
+            "/players",
+            {"league": league_id, "season": season_year, "page": 1},
+        )
+    except Exception:
+        return pd.DataFrame()
+
+    total_pages = int((data.get("paging") or {}).get("total") or 1)
+    capped_pages = min(total_pages, 5)  # keep it fast
+
+    def parse(resp):
+        temp = []
+        for item in resp.get("response", []):
+            player = item.get("player", {}) or {}
+            stats = (item.get("statistics") or [{}])[0] or {}
+
+            passes = (stats.get("passes") or {}).get("total", 0)
+            key_passes = (stats.get("passes") or {}).get("key", 0)
+            assists = (stats.get("goals") or {}).get("assists", 0)
+
+            temp.append({
+                "player": player.get("name", "Unknown"),
+                "passes": int(passes or 0),
+                "key_passes": int(key_passes or 0),
+                "assists": int(assists or 0),
+            })
+        return temp
+
+    rows.extend(parse(data))
+
+    for page in range(2, capped_pages + 1):
+        resp = api_get(
+            "/players",
+            {"league": league_id, "season": season_year, "page": page},
+        )
+        rows.extend(parse(resp))
+
+    df = pd.DataFrame(rows)
+
+    if df.empty:
+        return df
+
+    return df

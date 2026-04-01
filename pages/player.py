@@ -3,6 +3,7 @@ import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State
+from services.api_football import get_league_player_stats
 from services.api_football import (
     get_league_teams,
     get_team_players,
@@ -151,6 +152,22 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div("Creativity Map", className="panel-title"),
+                                dcc.Graph(
+                                    id="player_scatter_chart",
+                                    figure=px.scatter(title=""),
+                                    style={"height": "420px"},
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
             ],
         ),
     ],
@@ -214,6 +231,7 @@ def update_player_player_options(league_id, season_year, team_id):
     Output("player_stats_chart", "figure"),
     Output("player_radar_chart", "figure"),
     Output("player_passing_chart", "figure"),
+    Output("player_scatter_chart", "figure"),
     Input("player_apply", "n_clicks"),
     State("player_league_dd", "value"),
     State("player_season_dd", "value"),
@@ -222,18 +240,27 @@ def update_player_player_options(league_id, season_year, team_id):
 )
 def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_name):
     if not player_name:
-        return px.bar(title="Select a player and click Apply"), go.Figure(), go.Figure()
+        return px.bar(title="Select a player and click Apply"), go.Figure(), go.Figure(), go.Figure()
 
     try:
         league_id = int(league_id)
         season_year = int(season_year)
         team_id = int(team_id)
     except Exception:
-        return px.bar(title="Invalid league/season/team selection"), go.Figure(), go.Figure()
+        return (
+            px.bar(title="Invalid league/season/team selection"),
+            go.Figure(),
+            go.Figure(),
+            go.Figure(),
+        )
 
     stats = get_player_stats(league_id, season_year, team_id, player_name)
     if not stats:
-        return px.bar(title=f"No stats found for {player_name}"), go.Figure(), go.Figure()
+        return (
+            px.bar(title=f"No stats found for {player_name}"),
+            go.Figure(),
+            go.Figure(),
+        )
 
     league_avgs = get_league_player_averages(league_id, season_year)
 
@@ -330,22 +357,51 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         showlegend=True,
     )
 
-    
     # PASSING CHART
-    passing_df = pd.DataFrame({
-        "stat": ["Passes", "Key Passes", "Pass Accuracy"],
-        "value": [passes, key_passes, pass_accuracy]
-    })
+    passing_df = pd.DataFrame(
+        {
+            "stat": ["Passes", "Key Passes", "Pass Accuracy"],
+            "value": [passes, key_passes, pass_accuracy],
+        }
+    )
 
     passing_fig = px.bar(
         passing_df,
         x="stat",
         y="value",
         title=f"{player_name} Passing Stats",
-        text="value"
+        text="value",
     )
 
     passing_fig.update_traces(marker_color="orange", textposition="outside")
     passing_fig.update_layout(yaxis_title="Value", xaxis_title="")
 
-    return fig, radar_fig, passing_fig
+    # SCATTER PLOT
+    league_df = get_league_player_stats(league_id, season_year)
+
+    if league_df is None or league_df.empty:
+        scatter_fig = px.scatter(title="No league data available")
+    else:
+        scatter_fig = px.scatter(
+            league_df,
+            x="passes",
+            y="key_passes",
+            size="assists",
+            hover_name="player",
+            title=f"{player_name} vs League (Creativity Map)",
+        )
+
+        selected = league_df[league_df["player"] == player_name]
+
+        if not selected.empty:
+            scatter_fig.add_trace(
+                go.Scatter(
+                    x=selected["passes"],
+                    y=selected["key_passes"],
+                    mode="markers",
+                    marker=dict(size=15, color="red"),
+                    name=player_name,
+                )
+            )
+
+    return fig, radar_fig, passing_fig, scatter_fig
