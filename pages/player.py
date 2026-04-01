@@ -168,6 +168,24 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div(
+                                    "Attacking Contribution", className="panel-title"
+                                ),
+                                dcc.Graph(
+                                    id="player_donut_chart",
+                                    figure=px.pie(title=""),
+                                    style={"height": "420px"},
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
             ],
         ),
     ],
@@ -232,6 +250,7 @@ def update_player_player_options(league_id, season_year, team_id):
     Output("player_radar_chart", "figure"),
     Output("player_passing_chart", "figure"),
     Output("player_scatter_chart", "figure"),
+    Output("player_donut_chart", "figure"),
     Input("player_apply", "n_clicks"),
     State("player_league_dd", "value"),
     State("player_season_dd", "value"),
@@ -240,7 +259,13 @@ def update_player_player_options(league_id, season_year, team_id):
 )
 def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_name):
     if not player_name:
-        return px.bar(title="Select a player and click Apply"), go.Figure(), go.Figure(), go.Figure()
+        return (
+            px.bar(title="Select a player and click Apply"),
+            go.Figure(),
+            go.Figure(),
+            go.Figure(),
+            go.Figure(),
+        )
 
     try:
         league_id = int(league_id)
@@ -252,12 +277,14 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             go.Figure(),
             go.Figure(),
             go.Figure(),
+            go.Figure(),
         )
 
     stats = get_player_stats(league_id, season_year, team_id, player_name)
     if not stats:
         return (
             px.bar(title=f"No stats found for {player_name}"),
+            go.Figure(),
             go.Figure(),
             go.Figure(),
         )
@@ -404,4 +431,14 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
                 )
             )
 
-    return fig, radar_fig, passing_fig, scatter_fig
+    non_scoring_shots = max(shots - goals, 0)
+
+    donut_fig = px.pie(
+        names=["Goals", "Non-Scoring Shots"],
+        values=[goals, non_scoring_shots],
+        title=f"{player_name} Attacking Contribution",
+        hole=0.4,
+    )
+    donut_fig.update_traces(marker_colors=["green", "lightgray"])
+
+    return fig, radar_fig, passing_fig, scatter_fig, donut_fig
