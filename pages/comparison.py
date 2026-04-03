@@ -1,6 +1,7 @@
 import dash
+import pandas as pd
 import plotly.graph_objects as go
-from dash import dcc, html, Input, Output, State
+from dash import dcc, html, Input, Output, State, dash_table
 from services.api_football import get_league_teams, get_team_players, get_player_stats
 from services.constants import LEAGUES, SEASONS, TEAMS_PL
 
@@ -18,14 +19,15 @@ layout = html.Div(
                 dcc.Link("League", href="/league", className="side-link"),
                 dcc.Link("Team", href="/team", className="side-link"),
                 dcc.Link("Players", href="/player", className="side-link"),
-                dcc.Link("Comparison", href="/comparison", className="side-link active"),
+                dcc.Link(
+                    "Comparison", href="/comparison", className="side-link active"
+                ),
             ],
         ),
         html.Div(
             className="main",
             children=[
                 html.Div("Player Comparison Dashboard", className="header"),
-
                 html.Div(
                     className="filters-row",
                     children=[
@@ -84,7 +86,6 @@ layout = html.Div(
                         ),
                     ],
                 ),
-
                 html.Div(
                     className="filters-row",
                     children=[
@@ -154,19 +155,34 @@ layout = html.Div(
                         ),
                     ],
                 ),
-
                 html.Div(
                     className="full-width-row",
                     children=[
                         html.Div(
                             className="panel",
                             children=[
-                                html.Div("Player Comparison Radar", className="panel-title"),
+                                html.Div(
+                                    "Player Comparison Radar", className="panel-title"
+                                ),
                                 dcc.Graph(
                                     id="comparison_radar_chart",
                                     figure=go.Figure(),
                                     style={"height": "520px"},
                                 ),
+                            ],
+                        ),
+                    ],
+                ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div(
+                                    "Comparison Stats Table", className="panel-title"
+                                ),
+                                html.Div(id="comparison_stats_table"),
                             ],
                         ),
                     ],
@@ -285,6 +301,7 @@ def update_compB_player_options(league_id, season_year, team_id):
 
 @dash.callback(
     Output("comparison_radar_chart", "figure"),
+    Output("comparison_stats_table", "children"),
     Input("comparison_apply", "n_clicks"),
     State("compA_league_dd", "value"),
     State("compA_season_dd", "value"),
@@ -297,13 +314,19 @@ def update_compB_player_options(league_id, season_year, team_id):
 )
 def update_comparison_radar(
     n_clicks,
-    leagueA, seasonA, teamA, playerA,
-    leagueB, seasonB, teamB, playerB,
+    leagueA,
+    seasonA,
+    teamA,
+    playerA,
+    leagueB,
+    seasonB,
+    teamB,
+    playerB,
 ):
     if not playerA or not playerB:
         fig = go.Figure()
         fig.update_layout(title="Select two players and click Compare")
-        return fig
+        return fig, html.Div()
 
     try:
         leagueA = int(leagueA)
@@ -313,10 +336,11 @@ def update_comparison_radar(
         leagueB = int(leagueB)
         seasonB = int(seasonB)
         teamB = int(teamB)
+
     except Exception:
         fig = go.Figure()
         fig.update_layout(title="Invalid selection")
-        return fig
+        return fig, html.Div()
 
     statsA = get_player_stats(leagueA, seasonA, teamA, playerA)
     statsB = get_player_stats(leagueB, seasonB, teamB, playerB)
@@ -324,7 +348,7 @@ def update_comparison_radar(
     if not statsA or not statsB:
         fig = go.Figure()
         fig.update_layout(title="Could not load comparison data")
-        return fig
+        return fig, html.Div()
 
     goalsA = statsA.get("goals", 0)
     assistsA = statsA.get("assists", 0)
@@ -403,4 +427,23 @@ def update_comparison_radar(
         showlegend=True,
     )
 
-    return fig
+    table_data = pd.DataFrame(
+    [
+        {"Stat": "Goals", "Player A": goalsA, "Player B": goalsB},
+        {"Stat": "Assists", "Player A": assistsA, "Player B": assistsB},
+        {"Stat": "Shots", "Player A": shotsA, "Player B": shotsB},
+        {"Stat": "Passes", "Player A": passesA, "Player B": passesB},
+        {"Stat": "Tackles", "Player A": tacklesA, "Player B": tacklesB},
+        {"Stat": "Saves", "Player A": savesA, "Player B": savesB},
+    ]
+)
+
+    stats_table = dash_table.DataTable(
+        columns=[{"name": c, "id": c} for c in table_data.columns],
+        data=table_data.to_dict("records"),
+        style_table={"overflowX": "auto"},
+        style_cell={"fontFamily": "Arial", "fontSize": 13, "padding": "10px"},
+        style_header={"fontWeight": "bold"},
+)
+
+    return fig, stats_table
