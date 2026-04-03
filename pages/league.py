@@ -1,4 +1,5 @@
 import dash
+import pandas as pd
 from dash import dcc, html, Input, Output, State, dash_table
 import plotly.express as px
 
@@ -146,10 +147,52 @@ layout = html.Div(
                         html.Div(
                             className="panel",
                             children=[
-                                html.Div("Goals Scored Treemap", className="panel-title"),
+                                html.Div(
+                                    "Goals Scored Treemap", className="panel-title"
+                                ),
                                 dcc.Graph(
                                     id="league_treemap_chart",
                                     figure=px.treemap(title=""),
+                                    style={"height": f"{CHART_HEIGHT}px"},
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div(
+                                    "League Results Breakdown", className="panel-title"
+                                ),
+                                dcc.Graph(
+                                    id="league_results_donut",
+                                    figure=px.pie(title=""),
+                                    style={"height": f"{CHART_HEIGHT}px"},
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                html.Div(
+                    className="full-width-row",
+                    children=[
+                        html.Div(
+                            className="panel",
+                            children=[
+                                html.Div(
+                                    "Points Distribution", className="panel-title"
+                                ),
+                                dcc.Graph(
+                                    id="league_points_histogram",
+                                    figure=px.histogram(
+                                        pd.DataFrame({"points": []}),
+                                        x="points",
+                                        title="",
+                                    ),
                                     style={"height": f"{CHART_HEIGHT}px"},
                                 ),
                             ],
@@ -178,6 +221,8 @@ layout = html.Div(
     Output("league_scorers_chart", "figure"),
     Output("league_bubble_chart", "figure"),
     Output("league_treemap_chart", "figure"),
+    Output("league_results_donut", "figure"),
+    Output("league_points_histogram", "figure"),
     Output("league_table_box", "children"),
     Output("league_error_box", "children"),
     Input("league_apply", "n_clicks"),
@@ -196,6 +241,8 @@ def update_league_page(n, league_id, season_year):
         if table_df is None or table_df.empty:
             bubble_fig = px.scatter(title="No league table data found.")
             treemap_fig = px.treemap(title="No league table data found.")
+            results_donut_fig = px.pie(title="No league table data found.")
+            points_hist_fig = px.histogram(title="No league table data found.")
             league_table = make_league_table(table_df)
             team_count = "—"
             highest_points = "—"
@@ -216,6 +263,37 @@ def update_league_page(n, league_id, season_year):
                 title="",
             )
 
+            points_hist_fig = px.histogram(
+                table_df,
+                x="points",
+                nbins=10,
+                hover_data=["team"],
+                title="",
+            )
+
+            points_hist_fig.update_layout(
+                xaxis_title="Points Range",
+                yaxis_title="Number of Teams",
+            )
+
+            points_hist_fig.update_traces(
+                marker_color="steelblue",
+                opacity=0.8,
+            )
+
+            total_wins = table_df["win"].sum()
+            total_draws = table_df["draw"].sum()
+            total_losses = table_df["lose"].sum()
+
+            results_donut_fig = px.pie(
+                names=["Wins", "Draws", "Losses"],
+                values=[total_wins, total_draws, total_losses],
+                title="",
+                hole=0.5,
+            )
+
+            results_donut_fig.update_traces(textinfo="label+percent")
+
             team_count = str(len(table_df))
             highest_points = str(table_df["points"].max())
             league_table = make_league_table(table_df)
@@ -224,6 +302,12 @@ def update_league_page(n, league_id, season_year):
             height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
         )
         treemap_fig.update_layout(
+            height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
+        )
+        results_donut_fig.update_layout(
+            height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
+        )
+        points_hist_fig.update_layout(
             height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
         )
 
@@ -237,7 +321,9 @@ def update_league_page(n, league_id, season_year):
                 y="goals",
                 title="",
             )
-            top_scorer = f"{scorers_df.iloc[0]['player']} ({scorers_df.iloc[0]['goals']})"
+            top_scorer = (
+                f"{scorers_df.iloc[0]['player']} ({scorers_df.iloc[0]['goals']})"
+            )
 
         scorers_fig.update_layout(
             height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
@@ -251,6 +337,8 @@ def update_league_page(n, league_id, season_year):
             scorers_fig,
             bubble_fig,
             treemap_fig,
+            results_donut_fig,
+            points_hist_fig,
             league_table,
             "",
         )
@@ -264,6 +352,12 @@ def update_league_page(n, league_id, season_year):
 
         empty_treemap = px.treemap(title="API error")
         empty_treemap.update_layout(height=CHART_HEIGHT)
+
+        empty_donut = px.pie(title="API error")
+        empty_donut.update_layout(height=CHART_HEIGHT)
+
+        empty_hist = px.histogram(title="API error")
+        empty_hist.update_layout(height=CHART_HEIGHT)
 
         return (
             "—",
