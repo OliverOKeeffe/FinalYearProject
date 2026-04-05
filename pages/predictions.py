@@ -22,7 +22,7 @@ layout = html.Div(
                 dcc.Link("Team", href="/team", className="side-link"),
                 dcc.Link("Players", href="/player", className="side-link"),
                 dcc.Link("Comparison", href="/comparison", className="side-link"),
-                dcc.Link("Prediction", href="/prediction", className="side-link active"),
+                dcc.Link("Predictions", href="/predictions", className="side-link"),
             ],
         ),
         html.Div(
