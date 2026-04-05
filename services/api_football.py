@@ -648,3 +648,65 @@ def get_league_player_stats(league_id: int, season_year: int) -> pd.DataFrame:
         return df
 
     return df
+
+# ---------------------------------------------------------
+#  Get fixture details for a specific matchup (NEW FUNCTION)
+# ---------------------------------------------------------
+def get_fixture_by_teams(league_id: int, season_year: int, home_team_id: int, away_team_id: int) -> dict:
+    data = api_get(
+        "/fixtures",
+        {
+            "league": league_id,
+            "season": season_year,
+            "team": home_team_id,
+            "next": 20,
+        },
+    )
+
+    for item in data.get("response", []):
+        teams = item.get("teams", {}) or {}
+        home = teams.get("home", {}) or {}
+        away = teams.get("away", {}) or {}
+
+        if home.get("id") == home_team_id and away.get("id") == away_team_id:
+            return item
+
+    return {}
+
+def get_match_prediction(fixture_id: int) -> dict:
+    data = api_get("/predictions", {"fixture": fixture_id})
+
+    response = data.get("response", [])
+    if not response:
+        return {}
+
+    return response[0]
+
+# ---------------------------------------------------------
+# LEAGUE UPCOMING FIXTURES
+# ---------------------------------------------------------
+def get_league_upcoming_fixtures(league_id: int, season_year: int, next_n: int = 10) -> list[dict]:
+    data = api_get(
+        "/fixtures",
+        {"league": league_id, "season": season_year, "next": next_n},
+    )
+
+    rows = []
+    for item in data.get("response", []):
+        fixture = item.get("fixture", {}) or {}
+        teams = item.get("teams", {}) or {}
+
+        home = teams.get("home", {}) or {}
+        away = teams.get("away", {}) or {}
+
+        rows.append(
+            {
+                "fixture_id": fixture.get("id"),
+                "date": (fixture.get("date") or "")[:10],
+                "time": (fixture.get("date") or "")[11:16],
+                "home_team": home.get("name", "Unknown"),
+                "away_team": away.get("name", "Unknown"),
+            }
+        )
+
+    return rows
