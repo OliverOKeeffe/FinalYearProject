@@ -170,7 +170,7 @@ layout = html.Div(
                     children=[
                         kpi_card("Goals Leader", "comp_kpi_goals"),
                         kpi_card("Assists Leader", "comp_kpi_assists"),
-                        kpi_card("Shots Leader", "comp_kpi_shots"),
+                        kpi_card("Tackles Leader", "comp_kpi_tackles"),
                         kpi_card("Passes Leader", "comp_kpi_passes"),
                     ],
                 ),
@@ -335,7 +335,7 @@ def update_compB_player_options(league_id, season_year, team_id):
 @dash.callback(
     Output("comp_kpi_goals", "children"),
     Output("comp_kpi_assists", "children"),
-    Output("comp_kpi_shots", "children"),
+    Output("comp_kpi_tackles", "children"),
     Output("comp_kpi_passes", "children"),
     Output("comparison_radar_chart", "figure"),
     Output("comparison_stats_table", "children"),
@@ -378,7 +378,7 @@ def update_comparison_radar(
     except Exception:
         fig = go.Figure()
         fig.update_layout(title="Invalid selection")
-        return fig, html.Div(), html.Div()
+        return "—", "—", "—", "—", fig, html.Div(), html.Div()
 
     statsA = get_player_stats(leagueA, seasonA, teamA, playerA)
     statsB = get_player_stats(leagueB, seasonB, teamB, playerB)
@@ -416,12 +416,12 @@ def update_comparison_radar(
     else:
         assists_kpi = "Draw"
 
-    if shotsA > shotsB:
-        shots_kpi = playerA
-    elif shotsB > shotsA:
-        shots_kpi = playerB
+    if tacklesA > tacklesB:
+        tackles_kpi = playerA
+    elif tacklesB > tacklesA:
+        tackles_kpi = playerB
     else:
-        shots_kpi = "Draw"
+        tackles_kpi = "Draw"
 
     if passesA > passesB:
         passes_kpi = playerA
@@ -559,4 +559,4 @@ def update_comparison_radar(
             html.Div(f"{playerA} and {playerB} make the same number of tackles.")
         )
 
-    return goals_kpi, assists_kpi, shots_kpi, passes_kpi, fig, stats_table, insights
+    return goals_kpi, assists_kpi, tackles_kpi, passes_kpi, fig, stats_table, insights
