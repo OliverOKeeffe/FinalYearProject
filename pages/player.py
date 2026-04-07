@@ -434,7 +434,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         height=550,
     )
 
-    # SCATTER PLOT
+        # SCATTER PLOT
     league_df = get_league_player_stats(league_id, season_year)
 
     if league_df is None or league_df.empty:
@@ -451,16 +451,35 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
 
         selected = league_df[league_df["player"] == player_name]
 
-        if not selected.empty:
+        if selected.empty:
+            scatter_fig.add_trace(
+                go.Scatter(
+                    x=[passes],
+                    y=[key_passes],
+                    mode="markers+text",
+                    text=[player_name],
+                    textposition="top center",
+                    marker=dict(size=18, color="red"),
+                    name=player_name,
+                )
+            )
+        else:
             scatter_fig.add_trace(
                 go.Scatter(
                     x=selected["passes"],
                     y=selected["key_passes"],
-                    mode="markers",
-                    marker=dict(size=15, color="red"),
+                    mode="markers+text",
+                    text=[player_name],
+                    textposition="top center",
+                    marker=dict(size=18, color="red"),
                     name=player_name,
                 )
             )
+
+        scatter_fig.update_layout(
+            xaxis_title="Total Passes",
+            yaxis_title="Key Passes",
+        )
 
     non_scoring_shots = max(shots - goals, 0)
 
