@@ -368,6 +368,8 @@ def update_league_page(n, league_id, season_year):
             empty_scorers,
             empty_bubble,
             empty_treemap,
+            empty_donut,
+            empty_hist,
             html.Div(),
             str(e),
         )

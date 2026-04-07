@@ -149,9 +149,9 @@ layout = html.Div(
                 html.Div(
                     className="kpi-row",
                     children=[
-                        kpi_card("Matches played", "kpi_matches"),
-                        kpi_card("Goals scored by Team", "kpi_goals"),
-                        kpi_card("Current league leader", "kpi_leader"),
+                        kpi_card("Matches Played", "kpi_matches"),
+                        kpi_card("Goals Scored", "kpi_goals"),
+                        kpi_card("Current League Leader", "kpi_leader"),
                         kpi_card("League Top Scorer", "kpi_top_scorer"),
                     ],
                 ),
