@@ -289,6 +289,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             go.Figure(),
             go.Figure(),
             go.Figure(),
+            go.Figure(),
         )
 
     league_avgs = get_league_player_averages(league_id, season_year)
@@ -394,16 +395,44 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         }
     )
 
-    passing_fig = px.bar(
-        passing_df,
-        x="stat",
-        y="value",
-        title=f"{player_name} Passing Stats",
-        text="value",
+        # PASSING CHART
+    passing_df = pd.DataFrame(
+        {
+            "stat": ["Passes", "Key Passes", "Pass Accuracy"],
+            "value": [passes, key_passes, pass_accuracy],
+        }
     )
 
-    passing_fig.update_traces(marker_color="orange", textposition="outside")
-    passing_fig.update_layout(yaxis_title="Value", xaxis_title="")
+    passing_fig = go.Figure()
+
+    passing_fig.add_trace(
+        go.Scatter(
+            x=passing_df["value"],
+            y=passing_df["stat"],
+            mode="markers+text",
+            text=passing_df["value"],
+            textposition="middle right",
+            marker=dict(size=12, color="orange"),
+            name="Value",
+        )
+    )
+
+    for _, row in passing_df.iterrows():
+        passing_fig.add_shape(
+            type="line",
+            x0=0,
+            y0=row["stat"],
+            x1=row["value"],
+            y1=row["stat"],
+            line=dict(color="lightgray", width=3),
+        )
+
+    passing_fig.update_layout(
+        title=f"{player_name} Passing Stats",
+        xaxis_title="Value",
+        yaxis_title="",
+        height=550,
+    )
 
     # SCATTER PLOT
     league_df = get_league_player_stats(league_id, season_year)
