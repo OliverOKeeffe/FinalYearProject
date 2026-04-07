@@ -56,8 +56,8 @@ body {
 
 /* Filters row */
 .filters-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 120px;
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
   align-items: end;
   margin-bottom: 18px;
@@ -67,12 +67,15 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  min-width: 120px;
 }
 
 .filter-box {
   background: #e8e8e8;
   padding: 12px;
   border-radius: 12px;
+  flex: 1 1 180px;
+  min-width: 180px;
 }
 
 .filter-label {
