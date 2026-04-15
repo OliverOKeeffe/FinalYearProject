@@ -488,6 +488,14 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
                     textposition="top center",
                     marker=dict(size=18, color="red"),
                     name=player_name,
+                    customdata=[[assists]],
+                    hovertemplate=(
+                        "<b>%{text}</b><br>"
+                        "Total Passes: %{x}<br>"
+                        "Key Passes: %{y}<br>"
+                        "Assists: %{customdata[0]}"
+                        "<extra></extra>"
+                ),
                 )
             )
         else:
@@ -500,8 +508,16 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
                     textposition="top center",
                     marker=dict(size=18, color="red"),
                     name=player_name,
+                    customdata=[[assists]],
+                     hovertemplate=(
+                        "<b>%{text}</b><br>"
+                        "Total Passes: %{x}<br>"
+                        "Key Passes: %{y}<br>"
+                        "Assists: %{customdata[0]}"
+                        "<extra></extra>"
+                    )
                 )
-            )
+            )   
 
         scatter_fig.update_layout(
             xaxis_title="Total Passes",
