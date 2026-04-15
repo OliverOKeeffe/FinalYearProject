@@ -462,6 +462,29 @@ def update_comparison_radar(
     valuesA_closed = valuesA + [valuesA[0]]
     valuesB_closed = valuesB + [valuesB[0]]
 
+    raw_valuesA = [
+        goalsA,
+        assistsA,
+        shotsA,
+        passesA,
+        tacklesA,
+    ]
+
+    raw_valuesB = [
+        goalsB,
+        assistsB,
+        shotsB,
+        passesB,
+        tacklesB,
+    ]
+
+    if savesA > 0 or savesB > 0:
+        raw_valuesA.append(savesA)
+        raw_valuesB.append(savesB)
+
+    raw_valuesA_closed = raw_valuesA + [raw_valuesA[0]]
+    raw_valuesB_closed = raw_valuesB + [raw_valuesB[0]]
+
     fig = go.Figure()
 
     fig.add_trace(
@@ -470,6 +493,8 @@ def update_comparison_radar(
             theta=categories_closed,
             fill="toself",
             name=f"{playerA} ({seasonA} - {leagueA})",
+            customdata=raw_valuesA_closed,
+            hovertemplate="%{theta}: %{customdata}<extra></extra>",
         )
     )
 
@@ -479,6 +504,8 @@ def update_comparison_radar(
             theta=categories_closed,
             fill="toself",
             name=f"{playerB} ({seasonB} - {leagueB})",
+            customdata=raw_valuesB_closed,
+            hovertemplate="%{theta}: %{customdata}<extra></extra>",
         )
     )
 
