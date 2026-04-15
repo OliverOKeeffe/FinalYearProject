@@ -100,23 +100,28 @@ layout = html.Div(
 )
 def update_prediction_page(n, league_id, season_year):
     try:
+        # I convert inputs to integers to ensure correct API usage
         league_id = int(league_id)
         season_year = int(season_year)
 
+        # I fetch the next 10 upcoming fixtures for the selected league/season
         fixtures = get_league_upcoming_fixtures(league_id, season_year, next_n=10)
+        # If no fixtures are found, I return a message
         if not fixtures:
             return html.Div("No upcoming fixtures found."), ""
 
         rows = []
+         # For each fixture, I request prediction data from the API and build a row for the table
         for fx in fixtures:
             fixture_id = fx.get("fixture_id")
+             # I call the prediction endpoint using the fixture ID 
             pred = get_match_prediction(fixture_id) if fixture_id else {}
-
+            # I extract the relevant prediction details, handling cases where data might be missing
             predictions = pred.get("predictions", {}) if pred else {}
             winner = (predictions.get("winner") or {}).get("name", "No prediction")
             advice = predictions.get("advice", "No advice")
             percent = predictions.get("percent", {}) if pred else {}
-
+            # I build each row of the table
             rows.append(
                 {
                     "Date": fx.get("date", ""),
@@ -130,7 +135,7 @@ def update_prediction_page(n, league_id, season_year):
                     "Advice": advice,
                 }
             )
-
+        # I convert the rows into a Dash DataTable for display
         table = dash_table.DataTable(
             columns=[{"name": c, "id": c} for c in rows[0].keys()],
             data=rows,
