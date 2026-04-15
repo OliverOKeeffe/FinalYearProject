@@ -521,12 +521,12 @@ def update_comparison_radar(
 
     table_data = pd.DataFrame(
         [
-            {"Stat": "Goals", "Player A": goalsA, "Player B": goalsB},
-            {"Stat": "Assists", "Player A": assistsA, "Player B": assistsB},
-            {"Stat": "Shots", "Player A": shotsA, "Player B": shotsB},
-            {"Stat": "Passes", "Player A": passesA, "Player B": passesB},
-            {"Stat": "Tackles", "Player A": tacklesA, "Player B": tacklesB},
-            {"Stat": "Saves", "Player A": savesA, "Player B": savesB},
+            {"Stat": "Goals", playerA: goalsA, playerB: goalsB},
+            {"Stat": "Assists", playerA: assistsA, playerB: assistsB},
+            {"Stat": "Shots", playerA: shotsA, playerB: shotsB},
+            {"Stat": "Passes", playerA: passesA, playerB: passesB},
+            {"Stat": "Tackles", playerA: tacklesA, playerB: tacklesB},
+            {"Stat": "Saves", playerA: savesA, playerB: savesB},
         ]
     )
 
