@@ -357,6 +357,29 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     player_values_closed = player_values + [player_values[0]]
     league_values_closed = league_values + [league_values[0]]
 
+    player_raw_values = [
+        goals,
+        assists,
+        shots,
+        passes,
+        tackles,
+    ]
+
+    league_raw_values = [
+        avg_goals,
+        avg_assists,
+        avg_shots,
+        avg_passes,
+        avg_tackles,
+    ]
+
+    if saves > 0 or avg_saves > 0:
+        player_raw_values.append(saves)
+        league_raw_values.append(avg_saves)
+
+    player_raw_values_closed = player_raw_values + [player_raw_values[0]]
+    league_raw_values_closed = league_raw_values + [league_raw_values[0]]
+
     radar_fig = go.Figure()
 
     radar_fig.add_trace(
@@ -365,6 +388,8 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             theta=categories_closed,
             fill="toself",
             name=player_name,
+            customdata=player_raw_values_closed,
+            hovertemplate="%{theta}: %{customdata}<extra></extra>",
         )
     )
 
@@ -374,6 +399,8 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             theta=categories_closed,
             fill="toself",
             name="League Average",
+            customdata=player_raw_values_closed,
+            hovertemplate="%{theta}: %{customdata}<extra></extra>",
         )
     )
 
