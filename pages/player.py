@@ -294,7 +294,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
 
     league_avgs = get_league_player_averages(league_id, season_year)
 
-    df = pd.DataFrame([{"stat": k.capitalize(), "value": v} for k, v in stats.items()])
+    df = pd.DataFrame([{"stat": k.capitalize(), "value": v} for k, v in stats.items()if k != "passes"])
 
     fig = px.bar(
         df,
