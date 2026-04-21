@@ -399,7 +399,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             theta=categories_closed,
             fill="toself",
             name="League Average",
-            customdata=player_raw_values_closed,
+            customdata=league_raw_values_closed,
             hovertemplate="%{theta}: %{customdata}<extra></extra>",
         )
     )
