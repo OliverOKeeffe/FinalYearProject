@@ -386,6 +386,9 @@ def update_comparison_radar(
         fig = go.Figure()
         fig.update_layout(title="Could not load comparison data")
         return "—", "—", "—", "—",fig, html.Div(), html.Div()
+    
+    playerA_label = f"{playerA} ({seasonA}/{str(seasonA + 1)[-2:]})"
+    playerB_label = f"{playerB} ({seasonB}/{str(seasonB + 1)[-2:]})"
 
     goalsA = statsA.get("goals", 0)
     assistsA = statsA.get("assists", 0)
@@ -492,7 +495,7 @@ def update_comparison_radar(
             r=valuesA_closed,
             theta=categories_closed,
             fill="toself",
-            name=f"{playerA} ({seasonA} - {leagueA})",
+            name=playerA_label,
             customdata=raw_valuesA_closed,
             hovertemplate="%{theta}: %{customdata}<extra></extra>",
         )
@@ -503,7 +506,7 @@ def update_comparison_radar(
             r=valuesB_closed,
             theta=categories_closed,
             fill="toself",
-            name=f"{playerB} ({seasonB} - {leagueB})",
+            name=playerB_label,
             customdata=raw_valuesB_closed,
             hovertemplate="%{theta}: %{customdata}<extra></extra>",
         )
@@ -521,12 +524,12 @@ def update_comparison_radar(
 
     table_data = pd.DataFrame(
         [
-            {"Stat": "Goals", playerA: goalsA, playerB: goalsB},
-            {"Stat": "Assists", playerA: assistsA, playerB: assistsB},
-            {"Stat": "Shots", playerA: shotsA, playerB: shotsB},
-            {"Stat": "Passes", playerA: passesA, playerB: passesB},
-            {"Stat": "Tackles", playerA: tacklesA, playerB: tacklesB},
-            {"Stat": "Saves", playerA: savesA, playerB: savesB},
+            {"Stat": "Goals", playerA_label: goalsA, playerB_label: goalsB},
+            {"Stat": "Assists", playerA_label: assistsA, playerB_label: assistsB},
+            {"Stat": "Shots", playerA_label: shotsA, playerB_label: shotsB},
+            {"Stat": "Passes", playerA_label: passesA, playerB_label: passesB},
+            {"Stat": "Tackles", playerA_label: tacklesA, playerB_label: tacklesB},
+            {"Stat": "Saves", playerA_label: savesA, playerB_label: savesB},
         ]
     )
 
@@ -541,48 +544,48 @@ def update_comparison_radar(
     insights = []
 
     if goalsA > goalsB:
-        insights.append(html.Div(f"{playerA} has scored more goals than {playerB}."))
+        insights.append(html.Div(f"{playerA_label} has scored more goals than {playerB_label}."))
     elif goalsB > goalsA:
-        insights.append(html.Div(f"{playerB} has scored more goals than {playerA}."))
+        insights.append(html.Div(f"{playerB_label} has scored more goals than {playerA_label}."))
     else:
         insights.append(
-            html.Div(f"{playerA} and {playerB} have scored the same number of goals.")
+            html.Div(f"{playerA_label} and {playerB_label} have scored the same number of goals.")
         )
 
     if assistsA > assistsB:
-        insights.append(html.Div(f"{playerA} has more assists than {playerB}."))
+        insights.append(html.Div(f"{playerA_label} has more assists than {playerB_label}."))
     elif assistsB > assistsA:
-        insights.append(html.Div(f"{playerB} has more assists than {playerA}."))
+        insights.append(html.Div(f"{playerB_label} has more assists than {playerA_label}."))
     else:
         insights.append(
-            html.Div(f"{playerA} and {playerB} have the same number of assists.")
+            html.Div(f"{playerA_label} and {playerB_label} have the same number of assists.")
         )
 
     if shotsA > shotsB:
-        insights.append(html.Div(f"{playerA} has taken more shots than {playerB}."))
+        insights.append(html.Div(f"{playerA_label} has taken more shots than {playerB_label }."))
     elif shotsB > shotsA:
-        insights.append(html.Div(f"{playerB} has taken more shots than {playerA}."))
+        insights.append(html.Div(f"{playerB_label} has taken more shots than {playerA_label}."))
     else:
         insights.append(
-            html.Div(f"{playerA} and {playerB} have taken the same number of shots.")
+            html.Div(f"{playerA_label} and {playerB_label} have taken the same number of shots.")
         )
 
     if passesA > passesB:
-        insights.append(html.Div(f"{playerA} attempts more passes than {playerB}."))
+        insights.append(html.Div(f"{playerA_label} attempts more passes than {playerB_label}."))
     elif passesB > passesA:
-        insights.append(html.Div(f"{playerB} attempts more passes than {playerA}."))
+        insights.append(html.Div(f"{playerB_label} attempts more passes than {playerA_label}."))
     else:
         insights.append(
-            html.Div(f"{playerA} and {playerB} attempt the same number of passes.")
+            html.Div(f"{playerA_label} and {playerB_label} attempt the same number of passes.")
         )
 
     if tacklesA > tacklesB:
-        insights.append(html.Div(f"{playerA} makes more tackles than {playerB}."))
+        insights.append(html.Div(f"{playerA_label} makes more tackles than {playerB_label}."))
     elif tacklesB > tacklesA:
-        insights.append(html.Div(f"{playerB} makes more tackles than {playerA}."))
+        insights.append(html.Div(f"{playerB_label} makes more tackles than {playerA_label}."))
     else:
         insights.append(
-            html.Div(f"{playerA} and {playerB} make the same number of tackles.")
+            html.Div(f"{playerA_label} and {playerB_label} make the same number of tackles.")
         )
 
     return goals_kpi, assists_kpi, tackles_kpi, passes_kpi, fig, stats_table, insights
