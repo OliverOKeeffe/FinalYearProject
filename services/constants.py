@@ -8,9 +8,16 @@ PLAYERS_MAX_PAGES = 6
 
 # Seasons (API uses start year)
 SEASONS = [
-    {"label": "2023/24", "value": 2023},
     {"label": "2024/25", "value": 2024},
+    {"label": "2023/24", "value": 2023},
     {"label": "2022/23", "value": 2022},
+    {"label": "2021/22", "value": 2021},
+    {"label": "2020/21", "value": 2020},
+    {"label": "2019/20", "value": 2019},
+    {"label": "2018/19", "value": 2018},
+    {"label": "2017/18", "value": 2017},
+    {"label": "2016/17", "value": 2016},
+
 ]
 
 # Current season start year (update when you have access to newer seasons)
