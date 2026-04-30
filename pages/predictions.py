@@ -1,18 +1,22 @@
 import dash
 from dash import dcc, html, Input, Output, State, dash_table
 
+# I import the necessary components from Dash and my API service functions/constants
 from services.constants import LEAGUES, SEASONS
 from services.api_football import (
     get_league_upcoming_fixtures,
     get_match_prediction,
 )
 
+# I register this page with Dash, setting the path to "/predictions"
 dash.register_page(__name__, path="/predictions")
 
 
+# I define the layout of the page, which includes a sidebar for navigation and a main area for content
 layout = html.Div(
     className="shell",
     children=[
+        # I create a sidebar with links to different pages of the app
         html.Div(
             className="sidebar",
             children=[
@@ -25,10 +29,12 @@ layout = html.Div(
                 dcc.Link("Predictions", href="/predictions", className="side-link"),
             ],
         ),
+        # I create the main content area, which includes a header, filters for league and season, and a section to display predictions
         html.Div(
             className="main",
             children=[
                 html.Div("Match Prediction Dashboard", className="header"),
+                # I create a row of filters for selecting the league and season, and a button to apply the filters
                 html.Div(
                     className="filters-row",
                     children=[
@@ -69,6 +75,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # I create a section to display the predictions table and any error messages
                 html.Div(
                     className="full-width-row",
                     children=[
@@ -91,6 +98,7 @@ layout = html.Div(
 )
 
 
+# I define a callback function that updates the predictions table when the "Predict" button is clicked
 @dash.callback(
     Output("predictions_table", "children"),
     Output("pred_error_box", "children"),
@@ -98,6 +106,7 @@ layout = html.Div(
     State("pred_league_dd", "value"),
     State("pred_season_dd", "value"),
 )
+# This function takes the number of clicks on the button, the selected league ID, and the selected season year as inputs
 def update_prediction_page(n, league_id, season_year):
     try:
         # I convert inputs to integers to ensure correct API usage
@@ -111,10 +120,10 @@ def update_prediction_page(n, league_id, season_year):
             return html.Div("No upcoming fixtures found."), ""
 
         rows = []
-         # For each fixture, I request prediction data from the API and build a row for the table
+        # For each fixture, I request prediction data from the API and build a row for the table
         for fx in fixtures:
             fixture_id = fx.get("fixture_id")
-             # I call the prediction endpoint using the fixture ID 
+            # I call the prediction endpoint using the fixture ID
             pred = get_match_prediction(fixture_id) if fixture_id else {}
             # I extract the relevant prediction details, handling cases where data might be missing
             predictions = pred.get("predictions", {}) if pred else {}
@@ -148,4 +157,5 @@ def update_prediction_page(n, league_id, season_year):
         return table, ""
 
     except Exception as e:
+        # If any error occurs during the API calls or data processing, I catch the exception and display an error message
         return html.Div(), str(e)

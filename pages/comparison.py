@@ -1,3 +1,4 @@
+# I imported the nessecary libraries and modules
 import dash
 import pandas as pd
 import plotly.graph_objects as go
@@ -8,6 +9,7 @@ from services.constants import LEAGUES, SEASONS, TEAMS_PL
 dash.register_page(__name__, path="/comparison")
 
 
+# I defined a helper function to create KPI cards for displaying the leaders in various statistics. This function takes a title and an ID for the value element, and returns a styled div containing the title and a placeholder for the value that will be updated dynamically.
 def kpi_card(title, value_id):
     return html.Div(
         className="kpi-card",
@@ -18,6 +20,7 @@ def kpi_card(title, value_id):
     )
 
 
+# I defined the layout of the comparison page, which includes a sidebar for navigation and a main area for content. The main area contains filters for selecting two players to compare, KPI cards to show the leaders in various statistics, a radar chart to visualize the comparison, a table to show the raw stats, and a section for insights based on the comparison.
 layout = html.Div(
     className="shell",
     children=[
@@ -29,10 +32,13 @@ layout = html.Div(
                 dcc.Link("League", href="/league", className="side-link"),
                 dcc.Link("Team", href="/team", className="side-link"),
                 dcc.Link("Players", href="/player", className="side-link"),
-                dcc.Link("Comparison", href="/comparison", className="side-link active"),
+                dcc.Link(
+                    "Comparison", href="/comparison", className="side-link active"
+                ),
                 dcc.Link("Predictions", href="/predictions", className="side-link"),
             ],
         ),
+        # I created the main content area, which includes a header, two rows of filters for selecting the league, season, team, and player for both players being compared, KPI cards to show the leaders in goals, assists, tackles, and passes, a radar chart to visualize the comparison of stats between the two players, a table to show the raw statistics side by side, and a section to display insights based on the comparison.
         html.Div(
             className="main",
             children=[
@@ -95,6 +101,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # I created a second row of filters for the second player being compared, allowing the user to select the league, season, team, and player for the second player. I also included a button to trigger the comparison after the selections are made.
                 html.Div(
                     className="filters-row",
                     children=[
@@ -151,6 +158,7 @@ layout = html.Div(
                                 ),
                             ],
                         ),
+                        # I included a button to trigger the comparison after the user has made their selections for both players. When clicked, this button will execute a callback function that retrieves the selected players' stats, updates the KPI cards, radar chart, stats table, and insights section based on the comparison of the two players.
                         html.Div(
                             className="apply-container",
                             children=[
@@ -164,6 +172,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # I created a row of KPI cards to display the leaders in goals, assists, tackles, and passes based on the comparison of the two selected players. These cards will be updated dynamically based on the stats of the players being compared.
                 html.Div(
                     className="kpi-row",
                     children=[
@@ -173,6 +182,7 @@ layout = html.Div(
                         kpi_card("Passes Leader", "comp_kpi_passes"),
                     ],
                 ),
+                # I created a section to display a radar chart that visualizes the comparison of stats between the two selected players. This chart will be updated dynamically based on the stats retrieved for each player after the "Compare" button is clicked.
                 html.Div(
                     className="full-width-row",
                     children=[
@@ -191,6 +201,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # I created a section to display a table that shows the raw statistics for both players side by side. This table will be updated dynamically based on the stats retrieved for each player after the "Compare" button is clicked.
                 html.Div(
                     className="full-width-row",
                     children=[
@@ -205,6 +216,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # I created a section to display insights based on the comparison of the two players. This section will be updated dynamically with text insights that highlight key differences or similarities between the players based on their stats.
                 html.Div(
                     className="full-width-row",
                     children=[
@@ -225,6 +237,7 @@ layout = html.Div(
 )
 
 
+# I defined a callback function that updates the team options in the dropdowns for both players based on the selected league and season. This function retrieves the teams for the selected league and season, updates the options in the team dropdowns, and ensures that the currently selected team remains selected if it is still valid.
 @dash.callback(
     Output("compA_team_dd", "options"),
     Output("compA_team_dd", "value"),
@@ -232,6 +245,7 @@ layout = html.Div(
     Input("compA_season_dd", "value"),
     State("compA_team_dd", "value"),
 )
+# This function takes the selected league ID and season year for player A, retrieves the teams for that league and season, and updates the team dropdown options and value accordingly. If the current team selection is still valid, it remains selected; otherwise, it defaults to the first team in the list.
 def update_compA_team_options(league_id, season_year, current_team_id):
     try:
         league_id = int(league_id)
@@ -257,6 +271,7 @@ def update_compA_team_options(league_id, season_year, current_team_id):
     return teams, new_value
 
 
+# I defined a similar callback function for player B to update the team options based on the selected league and season for player B. This ensures that both players' team dropdowns are dynamically updated based on the user's selections for league and season.
 @dash.callback(
     Output("compB_team_dd", "options"),
     Output("compB_team_dd", "value"),
@@ -264,6 +279,7 @@ def update_compA_team_options(league_id, season_year, current_team_id):
     Input("compB_season_dd", "value"),
     State("compB_team_dd", "value"),
 )
+# This function takes the selected league ID and season year for player B, retrieves the teams for that league and season, and updates the team dropdown options and value accordingly. If the current team selection is still valid, it remains selected; otherwise, it defaults to the first team in the list.
 def update_compB_team_options(league_id, season_year, current_team_id):
     try:
         league_id = int(league_id)
@@ -289,6 +305,7 @@ def update_compB_team_options(league_id, season_year, current_team_id):
     return teams, new_value
 
 
+# I defined callback functions to update the player options in the dropdowns for both players based on the selected league, season, and team. These functions retrieve the players for the selected team and update the player dropdown options and values accordingly.
 @dash.callback(
     Output("compA_player_dd", "options"),
     Output("compA_player_dd", "value"),
@@ -296,6 +313,7 @@ def update_compB_team_options(league_id, season_year, current_team_id):
     Input("compA_season_dd", "value"),
     Input("compA_team_dd", "value"),
 )
+# This function takes the selected league ID, season year, and team ID for player A, retrieves the players for that team, and updates the player dropdown options and value accordingly. If there are no players found, it returns an empty list of options and a None value.
 def update_compA_player_options(league_id, season_year, team_id):
     try:
         league_id = int(league_id)
@@ -317,6 +335,7 @@ def update_compA_player_options(league_id, season_year, team_id):
     Input("compB_season_dd", "value"),
     Input("compB_team_dd", "value"),
 )
+# This function takes the selected league ID, season year, and team ID for player B, retrieves the players for that team, and updates the player dropdown options and value accordingly. If there are no players found, it returns an empty list of options and a None value.
 def update_compB_player_options(league_id, season_year, team_id):
     try:
         league_id = int(league_id)
@@ -331,6 +350,7 @@ def update_compB_player_options(league_id, season_year, team_id):
     return options, value
 
 
+# I defined a callback function that updates the comparison radar chart, stats table, KPI cards, and insights based on the selected players and their stats. This function retrieves the stats for both players, determines the leaders in various categories, creates a radar chart to visualize the comparison, builds a table to show the raw stats, and generates insights based on the comparison of the two players.
 @dash.callback(
     Output("comp_kpi_goals", "children"),
     Output("comp_kpi_assists", "children"),
@@ -349,6 +369,7 @@ def update_compB_player_options(league_id, season_year, team_id):
     State("compB_team_dd", "value"),
     State("compB_player_dd", "value"),
 )
+# This function takes the number of clicks on the "Compare" button, the selected league ID, season year, team ID, and player name for both players being compared. It retrieves the stats for both players, determines the leaders in goals, assists, tackles, and passes, creates a radar chart to visualize the comparison of stats between the two players, builds a table to show the raw stats side by side, and generates insights based on the comparison of the two players.
 def update_comparison_radar(
     n_clicks,
     leagueA,
@@ -360,11 +381,12 @@ def update_comparison_radar(
     teamB,
     playerB,
 ):
+
     if not playerA or not playerB:
         fig = go.Figure()
         fig.update_layout(title="Select two players and click Compare")
         return "—", "—", "—", "—", fig, html.Div(), html.Div()
-
+    #
     try:
         leagueA = int(leagueA)
         seasonA = int(seasonA)
@@ -385,8 +407,8 @@ def update_comparison_radar(
     if not statsA or not statsB:
         fig = go.Figure()
         fig.update_layout(title="Could not load comparison data")
-        return "—", "—", "—", "—",fig, html.Div(), html.Div()
-    
+        return "—", "—", "—", "—", fig, html.Div(), html.Div()
+    # I create labels for both players that include their name and the season they are being compared for. I also extract the relevant stats for both players, providing default values of 0 if any stats are missing. I determine the leaders in goals, assists, tackles, and passes based on the stats of both players, and prepare the data for the radar chart and stats table.
     playerA_label = f"{playerA} ({seasonA}/{str(seasonA + 1)[-2:]})"
     playerB_label = f"{playerB} ({seasonB}/{str(seasonB + 1)[-2:]})"
 
@@ -403,7 +425,7 @@ def update_comparison_radar(
     passesB = statsB.get("passes", 0)
     tacklesB = statsB.get("tackles", 0)
     savesB = statsB.get("saves", 0)
-
+    # I determine the leaders in each category by comparing the stats of both players. If one player has a higher stat in a category, that player is the leader; if both players have the same stat, it is considered a draw. I then prepare the data for the radar chart and stats table to visualize the comparison between the two players.
     if goalsA > goalsB:
         goals_kpi = playerA
     elif goalsB > goalsA:
@@ -439,7 +461,7 @@ def update_comparison_radar(
         "Passes",
         "Tackles",
     ]
-
+    # I prepare the values for the radar chart by applying a scaling factor to each stat to ensure that they are visually comparable on the chart. I also prepare the raw values for display in the stats table and for use in the hover tooltips on the radar chart.
     valuesA = [
         goalsA * 5,
         assistsA * 5,
@@ -455,7 +477,7 @@ def update_comparison_radar(
         passesB / 10,
         tacklesB * 2,
     ]
-
+    # I include saves as a category in the radar chart if either player has made saves, applying a scaling factor to ensure it fits well on the chart. I also prepare the raw values for saves for display in the stats table and hover tooltips.
     if savesA > 0 or savesB > 0:
         categories.append("Saves")
         valuesA.append(savesA * 2)
@@ -480,14 +502,14 @@ def update_comparison_radar(
         passesB,
         tacklesB,
     ]
-
+    # I include saves in the raw values if either player has made saves, ensuring that the raw values for both players are aligned with the categories used in the radar chart and stats table.
     if savesA > 0 or savesB > 0:
         raw_valuesA.append(savesA)
         raw_valuesB.append(savesB)
 
     raw_valuesA_closed = raw_valuesA + [raw_valuesA[0]]
     raw_valuesB_closed = raw_valuesB + [raw_valuesB[0]]
-
+    # I create the radar chart using Plotly, adding traces for both players with the prepared values and categories. I also set up custom hover templates to display the raw values when hovering over the chart. Finally, I update the layout of the chart to ensure it is visually appealing and easy to interpret.
     fig = go.Figure()
 
     fig.add_trace(
@@ -521,7 +543,7 @@ def update_comparison_radar(
         ),
         showlegend=True,
     )
-
+    # I build a table to show the raw stats for both players side by side, and prepare insights based on the comparison of the two players' stats. The insights highlight key differences or similarities between the players based on their performance in various categories.
     table_data = pd.DataFrame(
         [
             {"Stat": "Goals", playerA_label: goalsA, playerB_label: goalsB},
@@ -532,7 +554,7 @@ def update_comparison_radar(
             {"Stat": "Saves", playerA_label: savesA, playerB_label: savesB},
         ]
     )
-
+    # I create a Dash DataTable to display the raw stats in a tabular format, and prepare insights based on the comparison of the two players' stats. The insights highlight key differences or similarities between the players based on their performance in various categories.
     stats_table = dash_table.DataTable(
         columns=[{"name": c, "id": c} for c in table_data.columns],
         data=table_data.to_dict("records"),
@@ -542,50 +564,80 @@ def update_comparison_radar(
     )
 
     insights = []
-
+    # I generate insights based on the comparison of the two players' stats, highlighting key differences or similarities in their performance across various categories. These insights are displayed as text below the radar chart and stats table to provide context and analysis of the comparison.
     if goalsA > goalsB:
-        insights.append(html.Div(f"{playerA_label} has scored more goals than {playerB_label}."))
+        insights.append(
+            html.Div(f"{playerA_label} has scored more goals than {playerB_label}.")
+        )
     elif goalsB > goalsA:
-        insights.append(html.Div(f"{playerB_label} has scored more goals than {playerA_label}."))
+        insights.append(
+            html.Div(f"{playerB_label} has scored more goals than {playerA_label}.")
+        )
     else:
         insights.append(
-            html.Div(f"{playerA_label} and {playerB_label} have scored the same number of goals.")
+            html.Div(
+                f"{playerA_label} and {playerB_label} have scored the same number of goals."
+            )
         )
 
     if assistsA > assistsB:
-        insights.append(html.Div(f"{playerA_label} has more assists than {playerB_label}."))
+        insights.append(
+            html.Div(f"{playerA_label} has more assists than {playerB_label}.")
+        )
     elif assistsB > assistsA:
-        insights.append(html.Div(f"{playerB_label} has more assists than {playerA_label}."))
+        insights.append(
+            html.Div(f"{playerB_label} has more assists than {playerA_label}.")
+        )
     else:
         insights.append(
-            html.Div(f"{playerA_label} and {playerB_label} have the same number of assists.")
+            html.Div(
+                f"{playerA_label} and {playerB_label} have the same number of assists."
+            )
         )
 
     if shotsA > shotsB:
-        insights.append(html.Div(f"{playerA_label} has taken more shots than {playerB_label }."))
+        insights.append(
+            html.Div(f"{playerA_label} has taken more shots than {playerB_label }.")
+        )
     elif shotsB > shotsA:
-        insights.append(html.Div(f"{playerB_label} has taken more shots than {playerA_label}."))
+        insights.append(
+            html.Div(f"{playerB_label} has taken more shots than {playerA_label}.")
+        )
     else:
         insights.append(
-            html.Div(f"{playerA_label} and {playerB_label} have taken the same number of shots.")
+            html.Div(
+                f"{playerA_label} and {playerB_label} have taken the same number of shots."
+            )
         )
 
     if passesA > passesB:
-        insights.append(html.Div(f"{playerA_label} attempts more passes than {playerB_label}."))
+        insights.append(
+            html.Div(f"{playerA_label} attempts more passes than {playerB_label}.")
+        )
     elif passesB > passesA:
-        insights.append(html.Div(f"{playerB_label} attempts more passes than {playerA_label}."))
+        insights.append(
+            html.Div(f"{playerB_label} attempts more passes than {playerA_label}.")
+        )
     else:
         insights.append(
-            html.Div(f"{playerA_label} and {playerB_label} attempt the same number of passes.")
+            html.Div(
+                f"{playerA_label} and {playerB_label} attempt the same number of passes."
+            )
         )
 
     if tacklesA > tacklesB:
-        insights.append(html.Div(f"{playerA_label} makes more tackles than {playerB_label}."))
+        insights.append(
+            html.Div(f"{playerA_label} makes more tackles than {playerB_label}.")
+        )
     elif tacklesB > tacklesA:
-        insights.append(html.Div(f"{playerB_label} makes more tackles than {playerA_label}."))
+        insights.append(
+            html.Div(f"{playerB_label} makes more tackles than {playerA_label}.")
+        )
     else:
         insights.append(
-            html.Div(f"{playerA_label} and {playerB_label} make the same number of tackles.")
+            html.Div(
+                f"{playerA_label} and {playerB_label} make the same number of tackles."
+            )
         )
 
     return goals_kpi, assists_kpi, tackles_kpi, passes_kpi, fig, stats_table, insights

@@ -15,11 +15,12 @@ from services.constants import LEAGUES, SEASONS, TEAMS_PL
 
 dash.register_page(__name__, path="/player")
 
-
+# This page allows users to select a league, season, team, and player to view detailed analytics about that player's performance in the selected season. It includes key stats, a radar chart comparing the player to league averages, a passing analysis, a creativity map comparing the player to others in the league, and an attacking contribution breakdown.
 layout = html.Div(
     className="shell",
     children=[
         html.Div(
+            # I create a sidebar with links to different pages of the app, highlighting the current page
             className="sidebar",
             children=[
                 html.Div("Player Page", className="sidebar-title"),
@@ -31,6 +32,7 @@ layout = html.Div(
                 dcc.Link("Predictions", href="/predictions", className="side-link"),
             ],
         ),
+        # I create the main content area, which includes a header, filters for league, season, team, and player selection, and sections to display various analytics about the selected player
         html.Div(
             className="main",
             children=[
@@ -194,6 +196,7 @@ layout = html.Div(
 )
 
 
+# I create callbacks to update the team dropdown based on the selected league and season, update the player dropdown based on the selected team, and update all the charts based on the selected player when the Apply button is clicked
 @dash.callback(
     Output("player_team_dd", "options"),
     Output("player_team_dd", "value"),
@@ -201,13 +204,14 @@ layout = html.Div(
     Input("player_season_dd", "value"),
     State("player_team_dd", "value"),
 )
+# This callback updates the team dropdown options and selected value based on the selected league and season. It fetches the teams for the selected league and season, and if the current selected team is not in the new options, it defaults to the first team in the list.
 def update_player_team_options(league_id, season_year, current_team_id):
     try:
         league_id = int(league_id)
         season_year = int(season_year)
     except Exception:
         return TEAMS_PL, current_team_id
-
+    # I fetch the teams for the selected league and season using the get_league_teams function. If no teams are found, I return a default list of Premier League teams. I then check if the current selected team ID is in the new list of teams; if not, I default to the first team in the list (if available).
     teams = get_league_teams(league_id, season_year)
     if not teams:
         return TEAMS_PL, current_team_id
@@ -226,6 +230,7 @@ def update_player_team_options(league_id, season_year, current_team_id):
     return teams, new_value
 
 
+# This callback updates the player dropdown options and selected value based on the selected league, season, and team. It fetches the players for the selected team using the get_team_players function, and if the current selected player is not in the new options, it defaults to the first player in the list (if available).
 @dash.callback(
     Output("player_player_dd", "options"),
     Output("player_player_dd", "value"),
@@ -247,6 +252,7 @@ def update_player_player_options(league_id, season_year, team_id):
     return options, value
 
 
+# This callback updates all the charts based on the selected player when the Apply button is clicked. It fetches the player's stats, league averages, and league player stats to create various visualizations comparing the player to league averages and other players in the league.
 @dash.callback(
     Output("player_stats_chart", "figure"),
     Output("player_radar_chart", "figure"),
@@ -259,6 +265,7 @@ def update_player_player_options(league_id, season_year, team_id):
     State("player_team_dd", "value"),
     State("player_player_dd", "value"),
 )
+# This function takes the number of clicks on the Apply button, the selected league ID, season year, team ID, and player name as inputs. It fetches the player's stats and league averages, and creates a bar chart of key stats, a radar chart comparing the player to league averages, a passing analysis chart, a creativity map comparing the player to others in the league, and a donut chart showing the player's attacking contribution.
 def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_name):
     if not player_name:
         return (
@@ -281,7 +288,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             go.Figure(),
             go.Figure(),
         )
-
+    # I fetch the player's stats using the get_player_stats function. If no stats are found, I return empty charts with a message indicating that no stats were found for the player.
     stats = get_player_stats(league_id, season_year, team_id, player_name)
     if not stats:
         return (
@@ -291,11 +298,17 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             go.Figure(),
             go.Figure(),
         )
-
+    # I also fetch the league averages for the player's position using the get_league_player_averages function, which will be used to create a radar chart comparing the player to league averages.
     league_avgs = get_league_player_averages(league_id, season_year)
 
-    df = pd.DataFrame([{"stat": k.capitalize(), "value": v} for k, v in stats.items()if k != "passes"])
-
+    df = pd.DataFrame(
+        [
+            {"stat": k.capitalize(), "value": v}
+            for k, v in stats.items()
+            if k != "passes"
+        ]
+    )
+    # I create a bar chart of the player's key stats using Plotly Express. The x-axis shows the stat categories, and the y-axis shows the values. I customize the colors and layout of the chart for better visualization.
     fig = px.bar(
         df,
         x="stat",
@@ -331,7 +344,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         "Passes",
         "Tackles",
     ]
-
+    # I calculate the values for the radar chart by normalizing the player's stats and league averages to a common scale. I also handle the case where saves might not be relevant for certain players (e.g., outfield players) by only including it if there are non-zero saves or average saves.
     player_values = [
         goals * 5,
         assists * 5,
@@ -347,12 +360,12 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         avg_passes / 10,
         avg_tackles * 2,
     ]
-
+    # I only include saves in the radar chart if there are non-zero saves for the player or a non-zero average saves in the league, to avoid skewing the chart for outfield players who typically have zero saves.
     if saves > 0 or avg_saves > 0:
         categories.append("Saves")
         player_values.append(saves * 2)
         league_values.append(avg_saves * 2)
-
+    # To create a closed radar chart, I append the first category and value to the end of the lists. This ensures that the radar chart forms a complete loop.
     categories_closed = categories + [categories[0]]
     player_values_closed = player_values + [player_values[0]]
     league_values_closed = league_values + [league_values[0]]
@@ -381,7 +394,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     league_raw_values_closed = league_raw_values + [league_raw_values[0]]
 
     radar_fig = go.Figure()
-
+    # I add two traces to the radar chart: one for the player's stats and one for the league averages. I use Scatterpolar to create the radar chart, and I customize the hover template to show the raw values of each stat when hovering over the points on the chart.
     radar_fig.add_trace(
         go.Scatterpolar(
             r=player_values_closed,
@@ -422,7 +435,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         }
     )
 
-        # PASSING CHART
+    # PASSING CHART
     passing_df = pd.DataFrame(
         {
             "stat": ["Passes", "Key Passes", "Pass Accuracy"],
@@ -431,7 +444,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
     )
 
     passing_fig = go.Figure()
-
+    # I create a horizontal bar chart for the passing analysis, showing total passes, key passes, and pass accuracy. I also add lines connecting the y-axis to the value points for better visualization, and I customize the layout of the chart.
     passing_fig.add_trace(
         go.Scatter(
             x=passing_df["value"],
@@ -443,7 +456,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
             name="Value",
         )
     )
-
+    # I add lines from the y-axis to the value points to create a lollipop chart effect. This helps to visually connect the stat categories on the y-axis to their corresponding values on the x-axis.
     for _, row in passing_df.iterrows():
         passing_fig.add_shape(
             type="line",
@@ -461,7 +474,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         height=550,
     )
 
-        # SCATTER PLOT
+    # SCATTER PLOT
     league_df = get_league_player_stats(league_id, season_year)
 
     if league_df is None or league_df.empty:
@@ -477,7 +490,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         )
 
         selected = league_df[league_df["player"] == player_name]
-
+        # I add a special marker for the selected player on the scatter plot, showing their name and stats when hovering over it. If the selected player is not found in the league data (which shouldn't happen), I add a marker based on the player's stats to ensure they are highlighted on the plot.
         if selected.empty:
             scatter_fig.add_trace(
                 go.Scatter(
@@ -495,9 +508,10 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
                         "Key Passes: %{y}<br>"
                         "Assists: %{customdata[0]}"
                         "<extra></extra>"
-                ),
+                    ),
                 )
             )
+            # This ensures that the selected player is highlighted on the scatter plot even if they are not found in the league data, which could happen due to data inconsistencies or if the player has very limited stats.
         else:
             scatter_fig.add_trace(
                 go.Scatter(
@@ -509,15 +523,15 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
                     marker=dict(size=18, color="red"),
                     name=player_name,
                     customdata=[[assists]],
-                     hovertemplate=(
+                    hovertemplate=(
                         "<b>%{text}</b><br>"
                         "Total Passes: %{x}<br>"
                         "Key Passes: %{y}<br>"
                         "Assists: %{customdata[0]}"
                         "<extra></extra>"
-                    )
+                    ),
                 )
-            )   
+            )
 
         scatter_fig.update_layout(
             xaxis_title="Total Passes",
@@ -525,7 +539,7 @@ def update_player_stats_chart(n_clicks, league_id, season_year, team_id, player_
         )
 
     non_scoring_shots = max(shots - goals, 0)
-
+    # I create a donut chart to show the player's attacking contribution, breaking down their shots into goals and non-scoring shots. This provides a visual representation of how many of the player's shots resulted in goals versus how many did not.
     donut_fig = px.pie(
         names=["Goals", "Non-Scoring Shots"],
         values=[goals, non_scoring_shots],

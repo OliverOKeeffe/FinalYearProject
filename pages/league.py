@@ -25,10 +25,11 @@ def kpi_card(title, value_id):
     )
 
 
+# Helper function to create a league table component from a DataFrame
 def make_league_table(df):
     if df is None or df.empty:
         return html.Div("No league table data found.", className="small-note")
-
+    # I create a DataTable with columns for rank, team, played, wins, draws, losses, goals for/against/difference, and points
     return dash_table.DataTable(
         columns=[
             {"name": "#", "id": "rank"},
@@ -42,6 +43,7 @@ def make_league_table(df):
             {"name": "GD", "id": "goal_diff"},
             {"name": "Pts", "id": "points"},
         ],
+        # I convert the DataFrame to a list of records for the DataTable
         data=df.to_dict("records"),
         sort_action="native",
         page_action="native",
@@ -52,6 +54,7 @@ def make_league_table(df):
     )
 
 
+# I define the layout of the league page, which includes a sidebar for navigation and a main area with filters, KPIs, charts, and a league table
 layout = html.Div(
     className="shell",
     children=[
@@ -115,6 +118,7 @@ layout = html.Div(
                         kpi_card("Highest Points", "league_kpi_points"),
                     ],
                 ),
+                # I create a row of charts for top scorers, goals vs points, and a treemap of goals scored by team
                 html.Div(
                     className="charts-row",
                     children=[
@@ -160,6 +164,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # I create a row of charts for league results breakdown and points distribution
                 html.Div(
                     className="full-width-row",
                     children=[
@@ -200,6 +205,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # Finally, I create a section for the league table and any error messages related to loading the league data
                 html.Div(
                     className="panel",
                     children=[
@@ -214,6 +220,7 @@ layout = html.Div(
 )
 
 
+# I define a callback function that updates all the KPIs, charts, and league table when the user clicks the "Apply" button. It takes the selected league and season as inputs, calls the API functions to get the relevant data, and then updates the page components accordingly. If there is an error during data fetching or processing, it catches the exception and displays an error message while showing empty charts.
 @dash.callback(
     Output("league_kpi_leader", "children"),
     Output("league_kpi_top_scorer", "children"),
@@ -230,6 +237,7 @@ layout = html.Div(
     State("league_league_dd", "value"),
     State("league_season_dd", "value"),
 )
+# This function takes the number of clicks on the "Apply" button, the selected league ID, and the selected season year as inputs. It then fetches the league leader, league table, and top scorers data from the API, creates the charts and league table component, and returns them to update the page. If any errors occur during this process, it catches the exception and returns empty charts and an error message.
 def update_league_page(n, league_id, season_year):
     try:
         league_id = int(league_id)
@@ -298,7 +306,7 @@ def update_league_page(n, league_id, season_year):
             team_count = str(len(table_df))
             highest_points = str(table_df["points"].max())
             league_table = make_league_table(table_df)
-
+        # I set a consistent height and margin for all the charts to ensure they fit well within the layout and look uniform. If there is no data for the league
         bubble_fig.update_layout(
             height=CHART_HEIGHT, margin=dict(l=30, r=10, t=40, b=30)
         )
@@ -343,7 +351,7 @@ def update_league_page(n, league_id, season_year):
             league_table,
             "",
         )
-
+    # If there is an error during data fetching or processing, it catches the exception and returns empty charts and an error message.
     except Exception as e:
         empty_scorers = px.bar(title="API error")
         empty_scorers.update_layout(height=CHART_HEIGHT)
